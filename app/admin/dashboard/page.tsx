@@ -1,0 +1,340 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api/client";
+import { useToast } from "@/components/ui/toast";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Button } from "@/components/ui/button";
+import { Badge, BadgeVariant } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Users,
+  Award,
+  BookOpen,
+  Briefcase,
+  CheckCircle,
+  Clock,
+  Settings,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles,
+  ArrowRight,
+  RefreshCw,
+} from "lucide-react";
+
+export default function AdminDashboardPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  // Stats Query
+  const {
+    data: statsData,
+    isLoading: isLoadingStats,
+    refetch: refetchStats,
+    isFetching: isFetchingStats,
+  } = useQuery({
+    queryKey: ["adminStats"],
+    queryFn: async () => {
+      const res = await api.getDashboardStats();
+      return res.data?.data;
+    },
+  });
+
+  // Settings Query
+  const { data: settingData } = useQuery({
+    queryKey: ["oprecSettings"],
+    queryFn: async () => {
+      const res = await api.getRecruitmentSetting();
+      return res.data?.data;
+    },
+  });
+
+  const [batchName, setBatchName] = useState("");
+  const [isFormInit, setIsFormInit] = useState(false);
+
+  if (settingData && !isFormInit) {
+    setBatchName(settingData.currentBatch || "Batch 1 2026");
+    setIsFormInit(true);
+  }
+
+  // Toggle Oprec Mutation
+  const toggleMutation = useMutation({
+    mutationFn: async (newStatus: boolean) => {
+      return api.updateRecruitmentSetting({
+        isActive: newStatus,
+        currentBatch: batchName || settingData?.currentBatch || "Batch 1",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["oprecSettings"] });
+      queryClient.invalidateQueries({ queryKey: ["oprecStatus"] });
+      toast.success("Pengaturan pendaftaran berhasil diperbarui!");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal mengubah status pendaftaran");
+    },
+  });
+
+  // Extract from both nested overview and direct format
+  const totalCandidates =
+    statsData?.overview?.totalCandidates ?? statsData?.totalCandidates ?? 0;
+  const totalGolden =
+    statsData?.overview?.totalGoldenCandidates ?? 0;
+  const totalAccepted =
+    statsData?.overview?.totalAccepted ?? statsData?.statusCounts?.DITERIMA ?? 0;
+  const roleCounts =
+    statsData?.distribution?.roleInterest ?? statsData?.roleCounts ?? {
+      RISET: 0,
+      MAGANG: 0,
+    };
+  const statusCounts =
+    statsData?.distribution?.status ?? statsData?.statusCounts ?? {
+      PENDING: 0,
+      SELEKSI_BERKAS: 0,
+      WAWANCARA_1: 0,
+      WAWANCARA_2: 0,
+      DITERIMA: 0,
+    };
+
+  const recentList = statsData?.recentRegistrations || [];
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Top Banner */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A201C]">
+            Statistik & Overview Seleksi
+          </h1>
+          <p className="text-xs text-[#64746A]">
+            Pantau metrik pendaftar masuk, sebaran bidang minat, dan kelola batch aktif.
+          </p>
+        </div>
+        <button
+          onClick={() => refetchStats()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/40 border border-white/50 text-xs font-semibold text-[#274432] hover:bg-white/60 transition-colors cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isFetchingStats ? "animate-spin" : ""}`} />
+          <span>Segarkan Data</span>
+        </button>
+      </div>
+
+      {/* Top Stat Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <GlassCard className="p-6 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[#64746A]">
+              Total Pelamar Masuk
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <span className="text-3xl font-extrabold text-[#1A201C]">
+            {isLoadingStats ? "..." : totalCandidates}
+          </span>
+          <span className="text-[11px] text-[#64746A]">
+            Kandidat terdaftar di sistem
+          </span>
+        </GlassCard>
+
+        <GlassCard className="p-6 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[#64746A]">
+              Golden Ticket
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-800">
+              <Sparkles className="w-4 h-4" />
+            </div>
+          </div>
+          <span className="text-3xl font-extrabold text-amber-900">
+            {isLoadingStats ? "..." : totalGolden}
+          </span>
+          <span className="text-[11px] text-[#64746A]">
+            Kandidat jalur prioritas portofolio
+          </span>
+        </GlassCard>
+
+        <GlassCard className="p-6 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[#64746A]">
+              Peminat Riset
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-700">
+              <BookOpen className="w-4 h-4" />
+            </div>
+          </div>
+          <span className="text-3xl font-extrabold text-[#1A201C]">
+            {isLoadingStats ? "..." : roleCounts?.RISET || 0}
+          </span>
+          <span className="text-[11px] text-[#64746A]">
+            Magang: {roleCounts?.MAGANG || 0} pelamar
+          </span>
+        </GlassCard>
+
+        <GlassCard className="p-6 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[#64746A]">
+              Lolos / Diterima
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-800">
+              <CheckCircle className="w-4 h-4" />
+            </div>
+          </div>
+          <span className="text-3xl font-extrabold text-[#1A201C]">
+            {isLoadingStats ? "..." : totalAccepted}
+          </span>
+          <span className="text-[11px] text-[#64746A]">
+            Telah diterima di laboratorium
+          </span>
+        </GlassCard>
+      </div>
+
+      {/* Grid: Status Distribution & Batch Control */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Status Distribution */}
+        <GlassCard className="p-6 lg:col-span-2 flex flex-col gap-5">
+          <div className="flex items-center justify-between border-b border-black/5 pb-3">
+            <h2 className="text-sm font-bold text-[#1A201C]">
+              Sebaran Tahapan Seleksi Pelamar
+            </h2>
+            <Link
+              href="/admin/candidates"
+              className="text-xs font-semibold text-[#274432] hover:underline flex items-center gap-1"
+            >
+              Lihat Semua Tabel <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center text-center gap-1.5">
+              <Badge variant="PENDING">Pending</Badge>
+              <span className="text-xl font-bold text-[#1A201C]">
+                {statusCounts?.PENDING || 0}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center text-center gap-1.5">
+              <Badge variant="SELEKSI_BERKAS">Berkas</Badge>
+              <span className="text-xl font-bold text-[#1A201C]">
+                {statusCounts?.SELEKSI_BERKAS || 0}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center text-center gap-1.5">
+              <Badge variant="WAWANCARA_1">Wawancara 1</Badge>
+              <span className="text-xl font-bold text-[#1A201C]">
+                {statusCounts?.WAWANCARA_1 || 0}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center text-center gap-1.5">
+              <Badge variant="WAWANCARA_2">Wawancara 2</Badge>
+              <span className="text-xl font-bold text-[#1A201C]">
+                {statusCounts?.WAWANCARA_2 || 0}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center text-center gap-1.5">
+              <Badge variant="DITERIMA">Diterima</Badge>
+              <span className="text-xl font-bold text-[#1A201C]">
+                {statusCounts?.DITERIMA || 0}
+              </span>
+            </div>
+          </div>
+
+          {/* Recent Registrations mini table if available */}
+          {recentList.length > 0 && (
+            <div className="flex flex-col gap-2 pt-2 border-t border-black/5">
+              <span className="text-xs font-semibold text-[#1A201C]">
+                Pendaftar Terbaru
+              </span>
+              <div className="flex flex-col gap-2">
+                {recentList.map((rec: any) => (
+                  <div
+                    key={rec.id}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-white/50 border border-black/5 text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#1A201C]">
+                        {rec.candidateName || rec.fullName}
+                      </span>
+                      {rec.isGoldenCandidate && (
+                        <Badge variant="GOLDEN">★ Golden</Badge>
+                      )}
+                      <span className="text-[#64746A]">
+                        • {rec.universitas || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={(rec.status || "PENDING") as BadgeVariant}>
+                        {rec.status}
+                      </Badge>
+                      <Link href={`/admin/candidates/${rec.id}`}>
+                        <Button variant="secondary" size="sm">
+                          Review
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </GlassCard>
+
+        {/* Batch Control Setting */}
+        <GlassCard className="p-6 flex flex-col gap-5 border-white/60">
+          <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
+            <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
+              <Settings className="w-4 h-4" />
+            </div>
+            <h2 className="text-sm font-bold text-[#1A201C]">
+              Pengaturan Batch Pendaftaran
+            </h2>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <Input
+              label="Nama Batch Aktif"
+              value={batchName}
+              onChange={(e) => setBatchName(e.target.value)}
+              placeholder="Oprec Batch 1 - 2026"
+            />
+
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/40 border border-black/5">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-[#1A201C]">
+                  Status Publik
+                </span>
+                <span className="text-[11px] text-[#64746A]">
+                  {settingData?.isActive
+                    ? "Dibuka untuk umum"
+                    : "Ditutup sementara"}
+                </span>
+              </div>
+
+              <Button
+                variant={settingData?.isActive ? "primary" : "secondary"}
+                size="sm"
+                isLoading={toggleMutation.isPending}
+                onClick={() => toggleMutation.mutate(!settingData?.isActive)}
+                leftIcon={
+                  settingData?.isActive ? (
+                    <ToggleRight className="w-4 h-4" />
+                  ) : (
+                    <ToggleLeft className="w-4 h-4" />
+                  )
+                }
+              >
+                {settingData?.isActive ? "Tutup" : "Buka"}
+              </Button>
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+    </div>
+  );
+}
