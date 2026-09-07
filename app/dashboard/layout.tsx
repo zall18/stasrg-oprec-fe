@@ -12,7 +12,11 @@ import {
   Rocket,
   LogOut,
   Loader2,
+  Calendar,
+  History,
+  Sparkles,
 } from "lucide-react";
+import { NotificationBell } from "@/components/ui/notification-bell";
 import { cn } from "@/lib/utils";
 
 export default function CandidateLayout({
@@ -60,14 +64,24 @@ export default function CandidateLayout({
       icon: <User className="w-4 h-4" />,
     },
     {
-      label: "Formulir Golden Candidate",
+      label: "Jalur Golden Candidate",
       href: "/dashboard/golden-candidate",
-      icon: <FileText className="w-4 h-4" />,
+      icon: <Sparkles className="w-4 h-4 text-amber-600" />,
     },
     {
       label: "Pendaftaran Oprec",
       href: "/dashboard/oprec",
       icon: <Rocket className="w-4 h-4" />,
+    },
+    {
+      label: "Jadwal Wawancara",
+      href: "/dashboard/interviews",
+      icon: <Calendar className="w-4 h-4" />,
+    },
+    {
+      label: "Riwayat Pendaftaran",
+      href: "/dashboard/history",
+      icon: <History className="w-4 h-4" />,
     },
   ];
 
@@ -80,7 +94,9 @@ export default function CandidateLayout({
             <Logo size="sm" subtitle="Candidate Portal" />
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <NotificationBell />
+
             <div className="hidden sm:flex flex-col text-right">
               <span className="text-xs font-semibold text-[#1A201C] truncate max-w-[200px]">
                 {user?.email}

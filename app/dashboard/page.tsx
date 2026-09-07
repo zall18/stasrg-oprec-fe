@@ -8,6 +8,7 @@ import { useAuthStore } from "@/lib/store/auth.store";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProgressStepper, SelectionStatus } from "@/components/ui/progress-stepper";
 import {
   UserCheck,
   AlertTriangle,
@@ -17,6 +18,8 @@ import {
   GraduationCap,
   Sparkles,
   Rocket,
+  Calendar,
+  History,
 } from "lucide-react";
 
 export default function CandidateDashboardPage() {
@@ -34,9 +37,48 @@ export default function CandidateDashboardPage() {
     },
   });
 
+  // Query latest registrations
+  const { data: registrationsData } = useQuery({
+    queryKey: ["candidateRegistrations"],
+    queryFn: async () => {
+      try {
+        const res = await api.getRegistrationsHistory();
+        return Array.isArray(res.data?.data) ? res.data.data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  // Query candidate interviews
+  const { data: interviewsData } = useQuery({
+    queryKey: ["candidateInterviews"],
+    queryFn: async () => {
+      try {
+        const res = await api.getCandidateInterviews();
+        return Array.isArray(res.data?.data) ? res.data.data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
   const profile = profileData;
   const isProfileComplete = Boolean(
     profile?.fullName && profile?.nim && profile?.cvUrl
+  );
+
+  const latestRegistration = registrationsData && registrationsData.length > 0
+    ? registrationsData[0]
+    : null;
+
+  const currentSelectionStatus: SelectionStatus =
+    (latestRegistration?.status as SelectionStatus) ||
+    (profile?.status as SelectionStatus) ||
+    "PENDING";
+
+  const upcomingInterview = interviewsData?.find(
+    (i: any) => i.status === "SCHEDULED" || i.status === "CONFIRMED"
   );
 
   return (
@@ -83,6 +125,41 @@ export default function CandidateDashboardPage() {
           )}
         </div>
       </GlassCard>
+
+      {/* Progress Stepper Tahapan Seleksi */}
+      <ProgressStepper currentStatus={currentSelectionStatus} />
+
+      {/* Interview Alert Banner if any upcoming interview */}
+      {upcomingInterview && (
+        <div className="p-5 rounded-3xl bg-emerald-700 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-white/20">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
+                Pemberitahuan Wawancara
+              </span>
+              <h4 className="text-sm font-bold">
+                Jadwal Wawancara:{" "}
+                {new Date(upcomingInterview.datetime).toLocaleString("id-ID", {
+                  dateStyle: "full",
+                  timeStyle: "short",
+                })}
+              </h4>
+            </div>
+          </div>
+          <Link href="/dashboard/interviews">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-white text-emerald-900 font-bold hover:bg-emerald-50"
+            >
+              Lihat Detail & Konfirmasi
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Main Grid Content */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

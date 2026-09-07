@@ -3,6 +3,8 @@ import { describe, it, expect, vi } from "vitest";
 import AdminCandidatesPage from "./page";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { ToastProvider } from "@/components/ui/toast";
+
 vi.mock("@/lib/api/client", () => ({
   api: {
     getCandidates: vi.fn().mockResolvedValue({
@@ -25,6 +27,7 @@ vi.mock("@/lib/api/client", () => ({
         },
       },
     }),
+    bulkUpdateCandidateStatus: vi.fn().mockResolvedValue({ data: { success: true } }),
   },
 }));
 
@@ -36,7 +39,9 @@ describe("app/admin/candidates", () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <AdminCandidatesPage />
+        <ToastProvider>
+          <AdminCandidatesPage />
+        </ToastProvider>
       </QueryClientProvider>
     );
 
@@ -45,6 +50,9 @@ describe("app/admin/candidates", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText(/Cari nama, NIM, email/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /Pilih Semua/i })
     ).toBeInTheDocument();
   });
 });

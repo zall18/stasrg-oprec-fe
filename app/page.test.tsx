@@ -14,6 +14,12 @@ vi.mock("@/lib/api/client", () => ({
         },
       },
     }),
+    getAnnouncements: vi.fn().mockResolvedValue({
+      data: {
+        success: true,
+        data: [],
+      },
+    }),
   },
 }));
 

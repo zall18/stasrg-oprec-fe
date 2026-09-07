@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { apiClient, BASE_API_URL } from "./client";
+import { apiClient, BASE_API_URL, api } from "./client";
 
 describe("lib/api/client", () => {
   beforeEach(() => {
@@ -30,5 +30,36 @@ describe("lib/api/client", () => {
     await expect(errorInterceptor(mock429)).rejects.toThrow(
       "Terlalu banyak permintaan (Rate limit). Silakan tunggu sejenak."
     );
+  });
+
+  it("exports all candidate and admin endpoint methods", () => {
+    expect(typeof api.getAnnouncements).toBe("function");
+    expect(typeof api.getRegistrationsHistory).toBe("function");
+    expect(typeof api.submitGoldenApplication).toBe("function");
+    expect(typeof api.getGoldenApplication).toBe("function");
+    expect(typeof api.updateGoldenApplication).toBe("function");
+    expect(typeof api.getCandidateNotifications).toBe("function");
+    expect(typeof api.getUnreadNotificationCount).toBe("function");
+    expect(typeof api.markNotificationRead).toBe("function");
+    expect(typeof api.getCandidateInterviews).toBe("function");
+    expect(typeof api.confirmInterview).toBe("function");
+    expect(typeof api.getBatches).toBe("function");
+    expect(typeof api.createBatch).toBe("function");
+    expect(typeof api.getBatchById).toBe("function");
+    expect(typeof api.updateBatch).toBe("function");
+    expect(typeof api.deleteBatch).toBe("function");
+    expect(typeof api.activateBatch).toBe("function");
+    expect(typeof api.bulkUpdateCandidateStatus).toBe("function");
+    expect(typeof api.getCandidateNotes).toBe("function");
+    expect(typeof api.addCandidateNote).toBe("function");
+    expect(typeof api.deleteCandidateNote).toBe("function");
+    expect(typeof api.getAdminInterviews).toBe("function");
+    expect(typeof api.createInterview).toBe("function");
+    expect(typeof api.updateInterview).toBe("function");
+    expect(typeof api.cancelInterview).toBe("function");
+    expect(typeof api.getActivityLogs).toBe("function");
+    expect(typeof api.createAnnouncement).toBe("function");
+    expect(typeof api.updateAnnouncement).toBe("function");
+    expect(typeof api.deleteAnnouncement).toBe("function");
   });
 });

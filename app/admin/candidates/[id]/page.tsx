@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   FolderPlus,
   Sparkles,
+  Calendar,
 } from "lucide-react";
 
 export default function CandidateDetailPage() {
@@ -355,8 +356,153 @@ export default function CandidateDetailPage() {
               Simpan Perubahan
             </Button>
           </GlassCard>
+
+          {/* Quick Interview Link */}
+          <GlassCard className="p-6 flex flex-col gap-3 border-white/60">
+            <h3 className="text-sm font-bold text-[#1A201C] flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#274432]" />
+              Sesi Wawancara
+            </h3>
+            <p className="text-xs text-[#64746A] leading-relaxed">
+              Jadwalkan sesi tanya jawab teknis daring atau luring bersama kandidat ini.
+            </p>
+            <Link href={`/admin/interviews?candidateId=${candidateId}`}>
+              <Button variant="outline" size="sm" className="w-full">
+                Jadwalkan Wawancara Kandidat
+              </Button>
+            </Link>
+          </GlassCard>
+
+          {/* Internal Notes Card */}
+          <CandidateNotesSection
+            candidateId={candidateId}
+            registrationId={registrationId}
+          />
         </div>
       </div>
     </div>
+  );
+}
+
+function CandidateNotesSection({
+  candidateId,
+  registrationId,
+}: {
+  candidateId: string;
+  registrationId?: string;
+}) {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [newNote, setNewNote] = useState("");
+
+  const { data: notesData, isLoading } = useQuery({
+    queryKey: ["candidateNotes", candidateId],
+    queryFn: async () => {
+      try {
+        const res = await api.getCandidateNotes(candidateId);
+        const data = res.data?.data ?? res.data;
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(candidateId),
+  });
+
+  const addNoteMutation = useMutation({
+    mutationFn: async () => {
+      if (!newNote.trim()) throw new Error("Isi catatan tidak boleh kosong");
+      return api.addCandidateNote(candidateId, {
+        content: newNote.trim(),
+        registrationId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["candidateNotes", candidateId] });
+      setNewNote("");
+      toast.success("Catatan internal berhasil ditambahkan!");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal menambahkan catatan");
+    },
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: (noteId: string) =>
+      api.deleteCandidateNote(candidateId, noteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["candidateNotes", candidateId] });
+      toast.success("Catatan berhasil dihapus");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal menghapus catatan");
+    },
+  });
+
+  const notes = notesData || [];
+
+  return (
+    <GlassCard className="p-6 flex flex-col gap-4 border-white/60">
+      <div className="flex items-center justify-between border-b border-black/5 pb-3">
+        <h3 className="text-sm font-bold text-[#1A201C] flex items-center gap-2">
+          Catatan Internal Admin
+        </h3>
+        <span className="text-[11px] text-[#64746A]">{notes.length} catatan</span>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <textarea
+          rows={2}
+          value={newNote}
+          onChange={(e) => setNewNote(e.target.value)}
+          placeholder="Tulis catatan rahasia internal PIC (misal: penguasaan Linux baik)..."
+          className="w-full px-3 py-2 rounded-2xl bg-black/[0.02] border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60"
+        />
+        <Button
+          variant="secondary"
+          size="sm"
+          className="self-end text-xs"
+          isLoading={addNoteMutation.isPending}
+          onClick={() => addNoteMutation.mutate()}
+        >
+          Tambah Catatan
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <span className="text-xs text-[#64746A] text-center py-4">
+          Memuat catatan...
+        </span>
+      ) : notes.length === 0 ? (
+        <span className="text-xs text-[#64746A] text-center py-4">
+          Belum ada catatan internal untuk kandidat ini.
+        </span>
+      ) : (
+        <div className="flex flex-col gap-2.5 max-h-60 overflow-y-auto pt-2 divide-y divide-black/5">
+          {notes.map((n: any) => (
+            <div key={n.id} className="pt-2 flex flex-col gap-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-[#1A201C]">
+                  {n.user?.email || "Admin PIC"}
+                </span>
+                <button
+                  onClick={() => deleteNoteMutation.mutate(n.id)}
+                  className="text-red-500 hover:text-red-700 text-[10px] cursor-pointer"
+                >
+                  Hapus
+                </button>
+              </div>
+              <p className="text-[#64746A] leading-relaxed">{n.content}</p>
+              <span className="text-[10px] text-[#64746A]/70">
+                {new Date(n.createdAt).toLocaleString("id-ID", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </GlassCard>
   );
 }

@@ -54,6 +54,7 @@ export const api = {
   // Public
   getHealth: () => apiClient.get("/health"),
   getOprecStatus: () => apiClient.get("/public/oprec-status"),
+  getAnnouncements: () => apiClient.get("/public/announcements"),
 
   // Auth
   login: (data: { email: string; password: string }) =>
@@ -67,6 +68,28 @@ export const api = {
     apiClient.post("/candidate/profile", data),
   applyOprec: (batchName?: string) =>
     apiClient.post("/candidate/apply-oprec", { batchName }),
+  getRegistrationsHistory: () => apiClient.get("/candidate/registrations"),
+  submitGoldenApplication: (data: {
+    motivasi: string;
+    pencapaian?: string;
+    rekomendasi?: string;
+    registrationId?: string;
+  }) => apiClient.post("/candidate/golden-application", data),
+  getGoldenApplication: () => apiClient.get("/candidate/golden-application"),
+  updateGoldenApplication: (data: {
+    motivasi: string;
+    pencapaian?: string;
+    rekomendasi?: string;
+  }) => apiClient.put("/candidate/golden-application", data),
+  getCandidateNotifications: (params?: { page?: number; limit?: number }) =>
+    apiClient.get("/candidate/notifications", { params }),
+  getUnreadNotificationCount: () =>
+    apiClient.get("/candidate/notifications/unread-count"),
+  markNotificationRead: (id: string) =>
+    apiClient.patch(`/candidate/notifications/${id}/read`),
+  getCandidateInterviews: () => apiClient.get("/candidate/interviews"),
+  confirmInterview: (id: string) =>
+    apiClient.patch(`/candidate/interviews/${id}/confirm`),
 
   // Upload
   uploadDocument: (file: File) => {
@@ -103,4 +126,74 @@ export const api = {
     }),
   exportCandidates: () =>
     apiClient.get("/admin/candidates/export", { responseType: "blob" }),
+
+  // Admin: Batch Management
+  getBatches: () => apiClient.get("/admin/oprec/batches"),
+  createBatch: (data: {
+    name: string;
+    description?: string;
+    startDate?: string;
+    endDate?: string;
+    quota?: number;
+    isActive?: boolean;
+  }) => apiClient.post("/admin/oprec/batches", data),
+  getBatchById: (id: string) => apiClient.get(`/admin/oprec/batches/${id}`),
+  updateBatch: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/oprec/batches/${id}`, data),
+  deleteBatch: (id: string) => apiClient.delete(`/admin/oprec/batches/${id}`),
+  activateBatch: (id: string) =>
+    apiClient.patch(`/admin/oprec/batches/${id}/activate`),
+
+  // Admin: Bulk Status
+  bulkUpdateCandidateStatus: (ids: string[], status: string) =>
+    apiClient.patch("/admin/candidates/bulk-status", { ids, status }),
+
+  // Admin: Candidate Internal Notes
+  getCandidateNotes: (candidateId: string) =>
+    apiClient.get(`/admin/candidates/${candidateId}/notes`),
+  addCandidateNote: (
+    candidateId: string,
+    data: { content: string; registrationId?: string }
+  ) => apiClient.post(`/admin/candidates/${candidateId}/notes`, data),
+  deleteCandidateNote: (candidateId: string, noteId: string) =>
+    apiClient.delete(`/admin/candidates/${candidateId}/notes/${noteId}`),
+
+  // Admin: Interviews
+  getAdminInterviews: (params?: {
+    batch?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => apiClient.get("/admin/interviews", { params }),
+  createInterview: (data: {
+    candidateId: string;
+    registrationId?: string;
+    datetime: string;
+    type?: "ONLINE" | "OFFLINE";
+    link?: string;
+    location?: string;
+    notes?: string;
+  }) => apiClient.post("/admin/interviews", data),
+  updateInterview: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/admin/interviews/${id}`, data),
+  cancelInterview: (id: string) => apiClient.delete(`/admin/interviews/${id}`),
+
+  // Admin: Activity Logs
+  getActivityLogs: (params?: {
+    userId?: string;
+    action?: string;
+    page?: number;
+    limit?: number;
+  }) => apiClient.get("/admin/activity-logs", { params }),
+
+  // Admin: Announcements
+  createAnnouncement: (data: {
+    title: string;
+    content: string;
+    isActive?: boolean;
+  }) => apiClient.post("/admin/announcements", data),
+  updateAnnouncement: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/admin/announcements/${id}`, data),
+  deleteAnnouncement: (id: string) =>
+    apiClient.delete(`/admin/announcements/${id}`),
 };

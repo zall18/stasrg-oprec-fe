@@ -53,6 +53,10 @@ describe("app/admin/layout", () => {
     expect(screen.getByTestId("admin-sidebar")).toBeInTheDocument();
     expect(screen.getByText("Ringkasan & Statistik")).toBeInTheDocument();
     expect(screen.getByText("Manajemen Pelamar")).toBeInTheDocument();
+    expect(screen.getByText("Manajemen Batch")).toBeInTheDocument();
+    expect(screen.getByText("Jadwal Wawancara")).toBeInTheDocument();
+    expect(screen.getByText("Log Aktivitas")).toBeInTheDocument();
+    expect(screen.getByText("Pengumuman")).toBeInTheDocument();
     expect(screen.getByText("Atur Pendaftaran")).toBeInTheDocument();
     expect(screen.getByText("Dashboard Content")).toBeInTheDocument();
   });

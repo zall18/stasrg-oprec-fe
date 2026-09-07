@@ -19,11 +19,17 @@ vi.mock("@/lib/api/client", () => ({
         },
       },
     }),
+    getRegistrationsHistory: vi.fn().mockResolvedValue({
+      data: { success: true, data: [] },
+    }),
+    getCandidateInterviews: vi.fn().mockResolvedValue({
+      data: { success: true, data: [] },
+    }),
   },
 }));
 
 describe("app/dashboard", () => {
-  it("renders candidate summary with fetched data", async () => {
+  it("renders candidate summary with fetched data and progress stepper", async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -38,5 +44,6 @@ describe("app/dashboard", () => {
       screen.getByRole("heading", { name: /Halo/i })
     ).toBeInTheDocument();
     expect(screen.getByText("Ringkasan Data Diri")).toBeInTheDocument();
+    expect(screen.getByTestId("progress-stepper")).toBeInTheDocument();
   });
 });

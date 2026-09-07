@@ -26,6 +26,10 @@ import {
   Menu,
   X,
   Sparkles,
+  Layers,
+  CalendarCheck,
+  Megaphone,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +154,26 @@ export default function AdminLayout({
       label: "Manajemen Pelamar",
       href: "/admin/candidates",
       icon: <Users className="w-4 h-4" />,
+    },
+    {
+      label: "Manajemen Batch",
+      href: "/admin/oprec",
+      icon: <Layers className="w-4 h-4" />,
+    },
+    {
+      label: "Jadwal Wawancara",
+      href: "/admin/interviews",
+      icon: <CalendarCheck className="w-4 h-4" />,
+    },
+    {
+      label: "Log Aktivitas",
+      href: "/admin/logs",
+      icon: <Activity className="w-4 h-4" />,
+    },
+    {
+      label: "Pengumuman",
+      href: "/admin/announcements",
+      icon: <Megaphone className="w-4 h-4" />,
     },
   ];
 

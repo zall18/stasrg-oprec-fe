@@ -7,6 +7,7 @@ export type BadgeVariant =
   | "WAWANCARA_1"
   | "WAWANCARA_2"
   | "DITERIMA"
+  | "DITOLAK"
   | "GOLDEN"
   | "DEFAULT";
 
@@ -27,6 +28,7 @@ export const Badge: React.FC<BadgeProps> = ({
     WAWANCARA_1: "bg-purple-500/20 text-purple-800 border border-purple-500/20",
     WAWANCARA_2: "bg-purple-500/20 text-purple-800 border border-purple-500/20",
     DITERIMA: "bg-emerald-500/20 text-emerald-800 border border-emerald-500/20",
+    DITOLAK: "bg-red-500/20 text-red-800 border border-red-500/20",
     GOLDEN: "bg-amber-500/20 text-amber-900 border border-amber-500/30 shadow-xs",
     DEFAULT: "bg-black/5 text-[#1A201C] border border-black/10",
   };
@@ -37,6 +39,7 @@ export const Badge: React.FC<BadgeProps> = ({
     WAWANCARA_1: "Wawancara 1",
     WAWANCARA_2: "Wawancara 2",
     DITERIMA: "Diterima",
+    DITOLAK: "Ditolak",
     GOLDEN: "★ Golden Ticket",
   };
 

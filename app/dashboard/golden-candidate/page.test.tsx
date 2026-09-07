@@ -14,11 +14,14 @@ vi.mock("@/lib/api/client", () => ({
     getCandidateProfile: vi.fn().mockResolvedValue({
       data: { success: true, data: null },
     }),
+    getGoldenApplication: vi.fn().mockResolvedValue({
+      data: { success: true, data: null },
+    }),
   },
 }));
 
 describe("app/dashboard/golden-candidate", () => {
-  it("renders form sections for personal info, academic, and documents", () => {
+  it("renders form sections for personal info in step 1 and step buttons", () => {
     render(
       <ToastProvider>
         <GoldenCandidatePage />
@@ -36,7 +39,7 @@ describe("app/dashboard/golden-candidate", () => {
       screen.getByLabelText(/Perguruan Tinggi/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Kurikulum Vitae \(CV\) \*/i)
+      screen.getByRole("button", { name: /Lanjut ke Langkah 2/i })
     ).toBeInTheDocument();
   });
 });

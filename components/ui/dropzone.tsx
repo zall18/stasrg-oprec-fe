@@ -8,6 +8,7 @@ export interface DropzoneProps {
   accept?: string;
   maxSizeBytes?: number;
   onFileSelect: (file: File | null) => void;
+  selectedFile?: File | null;
   error?: string;
   helperText?: string;
   currentUrl?: string;
@@ -18,12 +19,15 @@ export const Dropzone: React.FC<DropzoneProps> = ({
   accept = ".pdf,application/pdf",
   maxSizeBytes = MAX_FILE_SIZE,
   onFileSelect,
+  selectedFile: propSelectedFile,
   error: externalError,
   helperText = "Format PDF, maksimal 5MB",
   currentUrl,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [internalSelectedFile, setInternalSelectedFile] = useState<File | null>(null);
+  const selectedFile = propSelectedFile !== undefined ? propSelectedFile : internalSelectedFile;
+  const setSelectedFile = setInternalSelectedFile;
   const [internalError, setInternalError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 

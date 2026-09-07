@@ -28,6 +28,7 @@ interface OprecStatus {
 
 export default function HomePage() {
   const [oprecStatus, setOprecStatus] = useState<OprecStatus | null>(null);
+  const [announcements, setAnnouncements] = useState<Array<{ id: string; title: string; content: string }>>([]);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
 
   useEffect(() => {
@@ -46,6 +47,15 @@ export default function HomePage() {
         });
       })
       .finally(() => setIsLoadingStatus(false));
+
+    api
+      .getAnnouncements()
+      .then((res) => {
+        if (Array.isArray(res.data?.data)) {
+          setAnnouncements(res.data.data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const isActive = Boolean(
@@ -62,6 +72,16 @@ export default function HomePage() {
           </Link>
 
           <nav className="flex items-center gap-2 sm:gap-3">
+            <Link href="/golden-candidate">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-amber-800 hover:text-amber-900 font-semibold"
+                leftIcon={<Sparkles className="w-3.5 h-3.5 text-amber-600" />}
+              >
+                Jalur Golden
+              </Button>
+            </Link>
             <Link href="/rekrutmen">
               <Button variant="ghost" size="sm" leftIcon={<FileCheck className="w-3.5 h-3.5" />}>
                 Panduan & Daftar
@@ -110,6 +130,18 @@ export default function HomePage() {
           </span>
           <Badge variant="GOLDEN">Golden Ticket Tersedia</Badge>
         </div>
+
+        {/* Announcement Banner if present */}
+        {announcements.length > 0 && (
+          <div className="w-full max-w-3xl -mt-8 p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-600/20 text-xs text-[#274432] font-medium flex flex-col sm:flex-row items-center justify-center gap-2 shadow-xs">
+            <span className="font-bold uppercase tracking-wider text-[10px] bg-[#274432] text-white px-2 py-0.5 rounded-full shrink-0">
+              Pengumuman
+            </span>
+            <span className="truncate">
+              <strong>{announcements[0].title}</strong> — {announcements[0].content}
+            </span>
+          </div>
+        )}
 
         {/* Heading */}
         <div className="flex flex-col gap-5 max-w-3xl">

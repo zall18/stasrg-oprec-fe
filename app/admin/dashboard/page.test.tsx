@@ -50,5 +50,7 @@ describe("app/admin/dashboard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Total Pelamar Masuk")).toBeInTheDocument();
     expect(screen.getByText("Pengaturan Batch Pendaftaran")).toBeInTheDocument();
+    expect(screen.getByTestId("role-donut-chart")).toBeInTheDocument();
+    expect(screen.getByTestId("status-bar-chart")).toBeInTheDocument();
   });
 });

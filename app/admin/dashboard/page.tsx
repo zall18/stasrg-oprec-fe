@@ -23,6 +23,17 @@ import {
   ArrowRight,
   RefreshCw,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 export default function AdminDashboardPage() {
   const toast = useToast();
@@ -242,6 +253,72 @@ export default function AdminDashboardPage() {
               <span className="text-xl font-bold text-[#1A201C]">
                 {statusCounts?.DITERIMA || 0}
               </span>
+            </div>
+          </div>
+
+          {/* Visual Recharts Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center">
+              <span className="text-xs font-bold text-[#1A201C] mb-2 self-start">
+                Distribusi Peminat Riset vs Magang
+              </span>
+              <div className="w-full h-44" data-testid="role-donut-chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "Riset", value: roleCounts?.RISET || 0, color: "#274432" },
+                        { name: "Magang", value: roleCounts?.MAGANG || 0, color: "#10B981" },
+                      ]}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={4}
+                    >
+                      <Cell fill="#274432" />
+                      <Cell fill="#10B981" />
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center gap-4 text-xs mt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#274432]" />
+                  <span className="text-[#64746A]">Riset ({roleCounts?.RISET || 0})</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+                  <span className="text-[#64746A]">Magang ({roleCounts?.MAGANG || 0})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col">
+              <span className="text-xs font-bold text-[#1A201C] mb-2">
+                Pipeline Tahapan Seleksi
+              </span>
+              <div className="w-full h-44" data-testid="status-bar-chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: "Pending", count: statusCounts?.PENDING || 0 },
+                      { name: "Berkas", count: statusCounts?.SELEKSI_BERKAS || 0 },
+                      { name: "Wawancara 1", count: statusCounts?.WAWANCARA_1 || 0 },
+                      { name: "Wawancara 2", count: statusCounts?.WAWANCARA_2 || 0 },
+                      { name: "Diterima", count: statusCounts?.DITERIMA || 0 },
+                    ]}
+                  >
+                    <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 9 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#274432" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 

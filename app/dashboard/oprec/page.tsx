@@ -96,26 +96,42 @@ export default function OprecApplyPage() {
           </div>
 
           {(oprec?.startDate || oprec?.endDate) && (
-            <div className="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-[#F5F7EC]/60 border border-black/5 text-xs text-[#1A201C]">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#274432]" />
-                <span>
-                  <strong>Mulai:</strong>{" "}
-                  {oprec?.startDate
-                    ? new Date(oprec.startDate).toLocaleDateString("id-ID")
-                    : "Segera"}
-                </span>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-[#F5F7EC]/60 border border-black/5 text-xs text-[#1A201C]">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#274432]" />
+                  <span>
+                    <strong>Mulai:</strong>{" "}
+                    {oprec?.startDate
+                      ? new Date(oprec.startDate).toLocaleDateString("id-ID")
+                      : "Segera"}
+                  </span>
+                </div>
+                <span>•</span>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#274432]" />
+                  <span>
+                    <strong>Batas Akhir:</strong>{" "}
+                    {oprec?.endDate
+                      ? new Date(oprec.endDate).toLocaleDateString("id-ID")
+                      : "Hingga kuota terpenuhi"}
+                  </span>
+                </div>
               </div>
-              <span>•</span>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#274432]" />
-                <span>
-                  <strong>Batas Akhir:</strong>{" "}
-                  {oprec?.endDate
-                    ? new Date(oprec.endDate).toLocaleDateString("id-ID")
-                    : "Hingga kuota terpenuhi"}
-                </span>
-              </div>
+
+              {/* Countdown Banner */}
+              {oprec?.endDate && (
+                <div className="p-4 rounded-2xl bg-[#274432]/5 border border-[#274432]/20 flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#274432]">
+                    Batas Pendaftaran Berakhir:
+                  </span>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#274432] text-white">
+                    {new Date(oprec.endDate) > new Date()
+                      ? `${Math.ceil((new Date(oprec.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} Hari Lagi`
+                      : "Pendaftaran Ditutup"}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 

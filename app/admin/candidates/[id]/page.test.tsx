@@ -34,6 +34,9 @@ vi.mock("@/lib/api/client", () => ({
     }),
     updateCandidateStatus: vi.fn().mockResolvedValue({ data: { success: true } }),
     assignProject: vi.fn().mockResolvedValue({ data: { success: true } }),
+    getCandidateNotes: vi.fn().mockResolvedValue({ data: { success: true, data: [] } }),
+    addCandidateNote: vi.fn().mockResolvedValue({ data: { success: true } }),
+    deleteCandidateNote: vi.fn().mockResolvedValue({ data: { success: true } }),
   },
 }));
 
@@ -57,6 +60,7 @@ describe("app/admin/candidates/[id]", () => {
     expect(screen.getByText(/Informasi Akademik/i)).toBeInTheDocument();
     expect(screen.getByText("Berkas & Portofolio")).toBeInTheDocument();
     expect(screen.getByText("Preview File")).toBeInTheDocument();
+    expect(screen.getByText("Catatan Internal Admin")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Simpan Perubahan/i })
     ).toBeInTheDocument();
