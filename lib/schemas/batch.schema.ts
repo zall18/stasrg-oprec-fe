@@ -2,9 +2,9 @@ import { z } from "zod";
 
 export const batchSchema = z.object({
   name: z.string().min(3, "Nama batch minimal 3 karakter"),
-  description: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  description: z.string().optional().nullable(),
+  startDate: z.string().optional().nullable(),
+  endDate: z.string().optional().nullable(),
   quota: z.coerce
     .number({ invalid_type_error: "Kuota harus berupa angka" })
     .int("Kuota harus bilangan bulat")

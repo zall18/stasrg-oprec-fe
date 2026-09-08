@@ -108,7 +108,7 @@ export default function CandidateDashboardPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {!isProfileComplete ? (
-            <Link href="/dashboard/golden-candidate">
+            <Link href="/dashboard/profile">
               <Button
                 variant="primary"
                 rightIcon={<ArrowRight className="w-4 h-4" />}
@@ -117,7 +117,7 @@ export default function CandidateDashboardPage() {
               </Button>
             </Link>
           ) : (
-            <Link href="/dashboard/golden-candidate">
+            <Link href="/dashboard/profile">
               <Button variant="secondary" leftIcon={<FileText className="w-4 h-4" />}>
                 Perbarui Profil
               </Button>
@@ -252,7 +252,7 @@ export default function CandidateDashboardPage() {
               <p className="text-xs text-[#64746A] max-w-sm">
                 Anda belum melengkapi profil pendaftaran. Segera isi informasi pribadi, akademik, dan unggah CV PDF maksimal 5MB.
               </p>
-              <Link href="/dashboard/golden-candidate">
+              <Link href="/dashboard/profile">
                 <Button variant="primary" size="sm">
                   Isi Formulir Profil
                 </Button>

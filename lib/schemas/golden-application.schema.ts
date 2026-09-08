@@ -13,6 +13,12 @@ export const goldenApplicationSchema = z.object({
 
 export type GoldenApplicationInput = z.infer<typeof goldenApplicationSchema>;
 
+export const updateGoldenStatusSchema = z.object({
+  status: z.enum(["PENDING", "REVIEW", "ACCEPTED", "REJECTED"]),
+});
+
+export type UpdateGoldenStatusInput = z.infer<typeof updateGoldenStatusSchema>;
+
 export const goldenWizardStep1Schema = z.object({
   fullName: z.string().min(3, "Nama lengkap minimal 3 karakter"),
   universitas: z.string().min(2, "Universitas wajib diisi"),

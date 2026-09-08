@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import GoldenCandidatePage from "./page";
+import CandidateProfilePage from "./page";
 import { vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
@@ -17,18 +17,16 @@ vi.mock("@/components/ui/toast", () => ({
 vi.mock("@/lib/api/client", () => ({
   api: {
     getCandidateProfile: vi.fn().mockResolvedValue({
-      data: { data: { fullName: "Test User", nim: "12345", cvUrl: "http://cv" } },
+      data: { data: { fullName: "Test User", nim: "12345" } },
     }),
-    getGoldenApplication: vi.fn().mockResolvedValue({
-      data: { data: null },
-    }),
-    submitGoldenApplication: vi.fn(),
+    uploadDocument: vi.fn(),
+    upsertCandidateProfile: vi.fn(),
   },
 }));
 
-describe("app/dashboard/golden-candidate", () => {
-  it("renders golden candidate form", async () => {
-    render(<GoldenCandidatePage />);
+describe("app/dashboard/profile", () => {
+  it("renders profile form", async () => {
+    render(<CandidateProfilePage />);
     
     // Check loading state first
     expect(document.querySelector(".animate-spin")).toBeInTheDocument();

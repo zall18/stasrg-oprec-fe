@@ -82,16 +82,42 @@ export default function AdminBatchesPage() {
     setIsModalOpen(true);
   };
 
+  // Helper to convert date input string to ISO 8601 string expected by backend Zod validator
+  const formatToISO = (dateStr: string, isEndOfDay = false): string | null => {
+    if (!dateStr || !dateStr.trim()) return null;
+    const trimmed = dateStr.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return isEndOfDay
+        ? new Date(`${trimmed}T23:59:59.999Z`).toISOString()
+        : new Date(`${trimmed}T00:00:00.000Z`).toISOString();
+    }
+    const parsed = new Date(trimmed);
+    return isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  };
+
   // Create or Update Mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Nama batch wajib diisi");
+
+      const startISO = formatToISO(startDate, false);
+      const endISO = formatToISO(endDate, true);
+
+      if (startISO && endISO && new Date(endISO) < new Date(startISO)) {
+        throw new Error("Tanggal selesai tidak boleh lebih awal dari tanggal mulai");
+      }
+
+      const parsedQuota = Number(quota);
+      if (isNaN(parsedQuota) || parsedQuota <= 0) {
+        throw new Error("Kuota harus berupa angka positif minimal 1");
+      }
+
       const payload = {
-        name,
-        description: description || undefined,
-        quota: Number(quota) || 30,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        name: name.trim(),
+        description: description.trim() || undefined,
+        quota: parsedQuota,
+        startDate: startISO,
+        endDate: endISO,
       };
 
       if (editingBatch) {

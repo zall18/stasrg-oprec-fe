@@ -48,13 +48,19 @@ export default function CandidateDetailPage() {
   const currentStatus = oprecRecord.status || candidate.status || "PENDING";
   const currentAssignedProject = oprecRecord.assignedProject || candidate.assignedProject || "";
 
+  // Golden application resolution
+  const goldenApp = candidate.goldenApplication || profile?.goldenApplication || (candidate.goldenApplications ? candidate.goldenApplications[0] : null);
+  const currentGoldenStatus = goldenApp?.status || "PENDING";
+
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [assignedProject, setAssignedProject] = useState<string>("");
+  const [selectedGoldenStatus, setSelectedGoldenStatus] = useState<string>("");
   const [isInit, setIsInit] = useState(false);
 
   if (rawData && !isInit) {
     setSelectedStatus(currentStatus);
     setAssignedProject(currentAssignedProject);
+    setSelectedGoldenStatus(currentGoldenStatus);
     setIsInit(true);
   }
 
@@ -77,6 +83,22 @@ export default function CandidateDetailPage() {
     },
     onError: (err: any) => {
       toast.error(err.message || "Gagal memperbarui status kandidat");
+    },
+  });
+
+  // Mutation for updating Golden status
+  const updateGoldenStatusMutation = useMutation({
+    mutationFn: async () => {
+      await api.updateGoldenStatus(registrationId, selectedGoldenStatus);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["candidateDetail", candidateId] });
+      queryClient.invalidateQueries({ queryKey: ["adminCandidates"] });
+      queryClient.invalidateQueries({ queryKey: ["adminStats"] });
+      toast.success("Status evaluasi Golden Candidate berhasil diperbarui!");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal memperbarui status Golden Candidate");
     },
   });
 
@@ -372,6 +394,66 @@ export default function CandidateDetailPage() {
               </Button>
             </Link>
           </GlassCard>
+
+          {/* Golden Candidate Evaluation Card */}
+          {goldenApp && (
+            <GlassCard className="p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/10">
+              <div className="flex items-center gap-2.5 border-b border-amber-500/20 pb-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h2 className="text-sm font-bold text-[#1A201C]">
+                  Evaluasi Golden Ticket
+                </h2>
+              </div>
+              
+              <div className="flex flex-col gap-3 text-xs">
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-[#64746A]">Esai Motivasi:</span>
+                  <p className="bg-white/40 p-2.5 rounded-xl border border-black/5 italic text-[#1A201C]">
+                    "{goldenApp.motivasi}"
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-[#64746A]">Daftar Prestasi:</span>
+                  <p className="bg-white/40 p-2.5 rounded-xl border border-black/5 text-[#1A201C]">
+                    {goldenApp.pencapaian}
+                  </p>
+                </div>
+                {goldenApp.rekomendasi && (
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold text-[#64746A]">Rekomendasi:</span>
+                    <p className="bg-white/40 p-2.5 rounded-xl border border-black/5 text-[#1A201C]">
+                      {goldenApp.rekomendasi}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-amber-500/20 flex flex-col gap-3">
+                <Select
+                  label="Keputusan Golden Candidate"
+                  value={selectedGoldenStatus}
+                  onChange={(e) => setSelectedGoldenStatus(e.target.value)}
+                  options={[
+                    { label: "Menunggu Review (Pending)", value: "PENDING" },
+                    { label: "Sedang Dievaluasi (Review)", value: "REVIEW" },
+                    { label: "Terima Golden Ticket", value: "ACCEPTED" },
+                    { label: "Tolak (Dialihkan ke Reguler)", value: "REJECTED" },
+                  ]}
+                />
+                <Button
+                  variant="primary"
+                  className="bg-amber-600 hover:bg-amber-700 text-white border-amber-700/50"
+                  isLoading={updateGoldenStatusMutation.isPending}
+                  onClick={() => updateGoldenStatusMutation.mutate()}
+                  leftIcon={<Sparkles className="w-4 h-4" />}
+                >
+                  Simpan Keputusan Golden
+                </Button>
+              </div>
+            </GlassCard>
+          )}
 
           {/* Internal Notes Card */}
           <CandidateNotesSection

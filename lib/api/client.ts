@@ -120,6 +120,8 @@ export const api = {
   getCandidateById: (id: string) => apiClient.get(`/admin/candidates/${id}`),
   updateCandidateStatus: (registrationId: string, status: string) =>
     apiClient.patch(`/admin/candidates/${registrationId}/status`, { status }),
+  updateGoldenStatus: (id: string, status: string) =>
+    apiClient.patch(`/admin/candidates/${id}/golden-status`, { status }),
   assignProject: (registrationId: string, assignedProject: string) =>
     apiClient.patch(`/admin/candidates/${registrationId}/project`, {
       assignedProject,
@@ -132,8 +134,8 @@ export const api = {
   createBatch: (data: {
     name: string;
     description?: string;
-    startDate?: string;
-    endDate?: string;
+    startDate?: string | null;
+    endDate?: string | null;
     quota?: number;
     isActive?: boolean;
   }) => apiClient.post("/admin/oprec/batches", data),
