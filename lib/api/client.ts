@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 
 export const BASE_API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+  process.env.NEXT_PUBLIC_API_URL || "https://stas-rg-oprec-be-production.up.railway.app/api";
 
 export const apiClient = axios.create({
   baseURL: BASE_API_URL,
