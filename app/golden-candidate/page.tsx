@@ -67,24 +67,24 @@ export default function GoldenCandidatePublicPage() {
   return (
     <div className="min-h-screen bg-[#F2F4F0] flex flex-col selection:bg-[#274432] selection:text-white">
       {/* Navigation */}
-      <header className="sticky top-0 z-40 w-full px-6 py-4 backdrop-blur-md bg-white/40 border-b border-white/50">
+      <header className="sticky top-0 z-40 w-full px-4 sm:px-6 py-3.5 sm:py-4 backdrop-blur-md bg-white/40 border-b border-white/50">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/">
             <Logo size="sm" subtitle="Jalur Unggulan Riset" />
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <Link href="/rekrutmen">
-              <span className="text-xs font-semibold text-[#64746A] hover:text-[#1A201C] px-3 py-2 transition-colors">
+              <span className="text-xs font-semibold text-[#64746A] hover:text-[#1A201C] px-2 sm:px-3 py-1.5 transition-colors">
                 Info Oprec
               </span>
             </Link>
             <Link href="/auth/login">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="text-xs px-2.5 sm:px-4">
                 Masuk
               </Button>
             </Link>
             <Link href="/auth/register">
-              <Button variant="primary" size="sm">
+              <Button variant="primary" size="sm" className="text-xs px-2.5 sm:px-4">
                 Daftar Akun
               </Button>
             </Link>
@@ -93,38 +93,38 @@ export default function GoldenCandidatePublicPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-6 pt-16 pb-20 text-center max-w-4xl mx-auto flex flex-col items-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/80 border border-amber-300/50 text-amber-900 text-xs font-bold mb-6 shadow-xs">
-          <Sparkles className="w-4 h-4 text-amber-600" />
+      <section className="relative px-4 sm:px-6 pt-10 sm:pt-16 pb-12 sm:pb-20 text-center max-w-4xl mx-auto flex flex-col items-center">
+        <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-amber-100/80 border border-amber-300/50 text-amber-900 text-xs font-bold mb-4 sm:mb-6 shadow-xs">
+          <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
           <span>Jalur Khusus Prestasi & Talenta Riset</span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-[#1A201C] tracking-tight mb-6 leading-tight">
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-[#1A201C] tracking-tight mb-4 sm:mb-6 leading-tight px-2">
           Akselerasi Karier Riset Anda Bersama{" "}
           <span className="text-[#274432] underline decoration-emerald-500/30">
             Golden Candidate STAS-RG
           </span>
         </h1>
 
-        <p className="text-base sm:text-lg text-[#64746A] max-w-2xl leading-relaxed mb-8">
+        <p className="text-sm sm:text-lg text-[#64746A] max-w-2xl leading-relaxed mb-6 sm:mb-8">
           Jalur penerimaan khusus bagi mahasiswa dengan dedikasi tinggi, portofolio
           solid, dan ambisi untuk menghasilkan riset berdampak global di laboratorium
           Smarter Things & Autonomous Systems Research Group.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Link href="/dashboard/golden-candidate">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <Link href="/dashboard/golden-candidate" className="w-full sm:w-auto">
             <Button
               variant="primary"
               size="lg"
-              className="px-8 shadow-xl shadow-[#274432]/20"
+              className="w-full sm:w-auto justify-center px-6 sm:px-8 shadow-xl shadow-[#274432]/20"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Isi Formulir Golden Candidate
             </Button>
           </Link>
-          <Link href="/rekrutmen">
-            <Button variant="outline" size="lg">
+          <Link href="/rekrutmen" className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto justify-center">
               Pelajari Oprec Reguler
             </Button>
           </Link>
@@ -132,21 +132,21 @@ export default function GoldenCandidatePublicPage() {
       </section>
 
       {/* Key Benefits */}
-      <section className="px-6 py-12 max-w-6xl mx-auto w-full">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-[#1A201C]">
+      <section className="px-4 sm:px-6 py-8 sm:py-12 max-w-6xl mx-auto w-full">
+        <div className="text-center mb-8 sm:mb-10">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#1A201C]">
             Keunggulan Eksklusif Jalur Golden
           </h2>
-          <p className="text-sm text-[#64746A]">
+          <p className="text-xs sm:text-sm text-[#64746A] mt-1">
             Didesain khusus untuk memaksimalkan potensi terbaik Anda sejak hari pertama
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           {benefits.map((b, i) => (
             <GlassCard
               key={i}
-              className="p-6 flex flex-col gap-4 border border-white/80 hover:shadow-lg transition-all"
+              className="p-5 sm:p-6 flex flex-col gap-4 border border-white/80 hover:shadow-lg transition-all"
             >
               <div className="w-12 h-12 rounded-2xl bg-white/80 flex items-center justify-center shadow-xs">
                 {b.icon}
@@ -161,8 +161,8 @@ export default function GoldenCandidatePublicPage() {
       </section>
 
       {/* Criteria & Requirements */}
-      <section className="px-6 py-12 max-w-4xl mx-auto w-full">
-        <GlassCard className="p-8 border border-white/80 bg-white/70">
+      <section className="px-4 sm:px-6 py-8 sm:py-12 max-w-4xl mx-auto w-full">
+        <GlassCard className="p-5 sm:p-8 border border-white/80 bg-white/70">
           <div className="flex items-center gap-3 mb-6">
             <BookOpen className="w-6 h-6 text-[#274432]" />
             <h3 className="text-xl font-bold text-[#1A201C]">

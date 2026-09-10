@@ -133,8 +133,8 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Top Stat Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <GlassCard className="p-6 flex flex-col gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+        <GlassCard className="p-4 sm:p-6 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#64746A]">
               Total Pelamar Masuk
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
           </span>
         </GlassCard>
 
-        <GlassCard className="p-6 flex flex-col gap-2">
+        <GlassCard className="p-4 sm:p-6 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#64746A]">
               Golden Ticket
@@ -168,7 +168,7 @@ export default function AdminDashboardPage() {
           </span>
         </GlassCard>
 
-        <GlassCard className="p-6 flex flex-col gap-2">
+        <GlassCard className="p-4 sm:p-6 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#64746A]">
               Peminat Riset
@@ -185,7 +185,7 @@ export default function AdminDashboardPage() {
           </span>
         </GlassCard>
 
-        <GlassCard className="p-6 flex flex-col gap-2">
+        <GlassCard className="p-4 sm:p-6 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-[#64746A]">
               Lolos / Diterima
@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
       {/* Grid: Status Distribution & Batch Control */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Status Distribution */}
-        <GlassCard className="p-6 lg:col-span-2 flex flex-col gap-5">
+        <GlassCard className="p-4 sm:p-6 lg:col-span-2 flex flex-col gap-5">
           <div className="flex items-center justify-between border-b border-black/5 pb-3">
             <h2 className="text-sm font-bold text-[#1A201C]">
               Sebaran Tahapan Seleksi Pelamar
@@ -219,7 +219,7 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 min-[480px]:grid-cols-3 sm:grid-cols-5 gap-2.5 sm:gap-3">
             <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex flex-col items-center text-center gap-1.5">
               <Badge variant="PENDING">Pending</Badge>
               <span className="text-xl font-bold text-[#1A201C]">

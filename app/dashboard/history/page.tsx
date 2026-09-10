@@ -112,11 +112,11 @@ export default function CandidateHistoryPage() {
             return (
               <GlassCard
                 key={item.id}
-                className="p-6 sm:p-8 flex flex-col gap-5 border-white/60"
+                className="p-4 sm:p-8 flex flex-col gap-5 border-white/60"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-[#274432]/10 text-[#274432]">
+                    <div className="p-2.5 rounded-2xl bg-[#274432]/10 text-[#274432] shrink-0">
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
@@ -168,11 +168,11 @@ export default function CandidateHistoryPage() {
                       <span className="text-[#274432] font-bold flex items-center gap-1.5">
                         <Video className="w-3.5 h-3.5" /> Sesi Wawancara Tercatat:
                       </span>
-                      <div className="space-y-1 pt-1">
+                      <div className="space-y-1.5 pt-1">
                         {item.interviews.map((iv) => (
                           <div
                             key={iv.id}
-                            className="flex items-center justify-between text-xs"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1"
                           >
                             <span>
                               {new Date(iv.datetime).toLocaleString("id-ID", {

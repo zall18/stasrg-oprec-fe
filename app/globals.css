@@ -19,6 +19,8 @@ body {
     radial-gradient(at 50% 50%, rgba(245, 247, 236, 0.5) 0px, transparent 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Glassmorphism utility helpers */
@@ -35,3 +37,13 @@ body {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
+
+/* Mobile-first utilities */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+

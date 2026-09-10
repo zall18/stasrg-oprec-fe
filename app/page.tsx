@@ -14,6 +14,8 @@ import {
   Award,
   CheckCircle,
   FileCheck,
+  Menu,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 
@@ -30,6 +32,7 @@ export default function HomePage() {
   const [oprecStatus, setOprecStatus] = useState<OprecStatus | null>(null);
   const [announcements, setAnnouncements] = useState<Array<{ id: string; title: string; content: string }>>([]);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     api
@@ -65,13 +68,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-[#274432] selection:text-white">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-4 backdrop-blur-md bg-white/30 border-b border-white/40">
+      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-3.5 sm:py-4 backdrop-blur-md bg-white/40 border-b border-white/50">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/">
             <Logo size="md" subtitle="Recruitment System" />
           </Link>
 
-          <nav className="flex items-center gap-2 sm:gap-3">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-2 sm:gap-3">
             <Link href="/golden-candidate">
               <Button
                 variant="ghost"
@@ -102,14 +106,53 @@ export default function HomePage() {
               </Button>
             </Link>
           </nav>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 rounded-2xl bg-white/70 hover:bg-white text-[#1A201C] border border-black/5 shadow-xs transition-colors"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-3 pt-3 border-t border-black/5 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+            <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>Jalur Golden Candidate</span>
+              </div>
+            </Link>
+            <Link href="/rekrutmen" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl hover:bg-white/60 text-xs font-semibold text-[#1A201C] transition-colors">
+                <FileCheck className="w-4 h-4 text-[#274432]" />
+                <span>Panduan & Formulir Rekrutmen</span>
+              </div>
+            </Link>
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-black/5">
+              <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="outline" size="sm" className="w-full text-xs">
+                  Masuk
+                </Button>
+              </Link>
+              <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="primary" size="sm" className="w-full text-xs">
+                  Buat Akun
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Hero */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-12 sm:py-20 flex flex-col items-center gap-16 text-center">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-20 flex flex-col items-center gap-10 sm:gap-16 text-center">
         {/* Banner Status */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/50 border border-white/60 shadow-xs backdrop-blur-md">
-          <span className="relative flex h-2.5 w-2.5">
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-2 rounded-2xl sm:rounded-full bg-white/50 border border-white/60 shadow-xs backdrop-blur-md max-w-full">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span
               className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                 isActive ? "bg-emerald-400" : "bg-gray-400"
@@ -133,7 +176,7 @@ export default function HomePage() {
 
         {/* Announcement Banner if present */}
         {announcements.length > 0 && (
-          <div className="w-full max-w-3xl -mt-8 p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-600/20 text-xs text-[#274432] font-medium flex flex-col sm:flex-row items-center justify-center gap-2 shadow-xs">
+          <div className="w-full max-w-3xl -mt-4 sm:-mt-8 p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-600/20 text-xs text-[#274432] font-medium flex flex-col sm:flex-row items-center justify-center gap-2 shadow-xs">
             <span className="font-bold uppercase tracking-wider text-[10px] bg-[#274432] text-white px-2 py-0.5 rounded-full shrink-0">
               Pengumuman
             </span>
@@ -144,14 +187,14 @@ export default function HomePage() {
         )}
 
         {/* Heading */}
-        <div className="flex flex-col gap-5 max-w-3xl">
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[#1A201C] leading-[1.15]">
+        <div className="flex flex-col gap-4 sm:gap-5 max-w-3xl">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-[#1A201C] leading-[1.15]">
             Membangun Masa Depan Bersama{" "}
             <span className="text-[#274432] underline decoration-emerald-600/30">
               STAS-RG
             </span>
           </h1>
-          <p className="text-base sm:text-lg text-[#64746A] leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-lg text-[#64746A] leading-relaxed max-w-2xl mx-auto">
             Laboratorium Smart Transportation & Autonomous Systems Research Group
             membuka peluang bagi talenta muda untuk berkontribusi dalam riset
             sistem otonom, kecerdasan buatan, dan teknologi mobilitas pintar.
@@ -159,18 +202,19 @@ export default function HomePage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link href="/rekrutmen">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-md sm:max-w-none">
+          <Link href="/rekrutmen" className="w-full sm:w-auto">
             <Button
               variant="primary"
               size="lg"
+              className="w-full sm:w-auto justify-center"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Info Rekrutmen & Formulir Pendaftaran
             </Button>
           </Link>
-          <Link href="/auth/login">
-            <Button variant="secondary" size="lg">
+          <Link href="/auth/login" className="w-full sm:w-auto">
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto justify-center">
               Portal Akun Terdaftar
             </Button>
           </Link>
@@ -266,19 +310,19 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="w-full px-4 sm:px-8 py-8 border-t border-black/5 bg-white/20 backdrop-blur-xs text-xs text-[#64746A]">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-2">
             <Logo size="sm" showText={false} />
             <p>© {new Date().getFullYear()} STAS-RG Lab. All rights reserved.</p>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/rekrutmen" className="hover:text-[#1A201C]">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <Link href="/rekrutmen" className="hover:text-[#1A201C] py-1">
               Panduan Berkas
             </Link>
             <span>•</span>
-            <span className="hover:text-[#1A201C] cursor-pointer">Kontak PIC Lab</span>
+            <span className="hover:text-[#1A201C] cursor-pointer py-1">Kontak PIC Lab</span>
             <span>•</span>
-            <span className="hover:text-[#1A201C] cursor-pointer">Kebijakan Privasi</span>
+            <span className="hover:text-[#1A201C] cursor-pointer py-1">Kebijakan Privasi</span>
           </div>
         </div>
       </footer>

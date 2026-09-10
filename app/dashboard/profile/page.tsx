@@ -151,7 +151,7 @@ export default function CandidateProfilePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-        <GlassCard className="p-6 sm:p-8 flex flex-col gap-5 border-white/60">
+        <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
           <h2 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-3">
             Informasi Data Diri
           </h2>
@@ -183,7 +183,7 @@ export default function CandidateProfilePage() {
           </div>
         </GlassCard>
 
-        <GlassCard className="p-6 sm:p-8 flex flex-col gap-5 border-white/60">
+        <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
           <div className="flex items-center gap-2 border-b border-black/5 pb-3">
             <GraduationCap className="w-4 h-4 text-[#274432]" />
             <h2 className="text-sm font-bold text-[#1A201C]">
@@ -256,12 +256,12 @@ export default function CandidateProfilePage() {
           </div>
         </GlassCard>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-col sm:flex-row sm:justify-end pt-2">
           <Button
             type="submit"
             variant="primary"
             size="lg"
-            className="bg-[#274432] hover:bg-[#1e3426] shadow-xl shadow-[#274432]/20 px-8"
+            className="w-full sm:w-auto justify-center bg-[#274432] hover:bg-[#1e3426] shadow-xl shadow-[#274432]/20 px-8"
             isLoading={isSubmitting}
             leftIcon={<Save className="w-4 h-4" />}
           >

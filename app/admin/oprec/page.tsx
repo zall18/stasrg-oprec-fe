@@ -175,9 +175,9 @@ export default function AdminBatchesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
             Manajemen Batch Oprec
-            <Layers className="w-6 h-6 text-[#274432]" />
+            <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-[#274432]" />
           </h1>
           <p className="text-xs text-[#64746A]">
             Atur periode rekrutmen, kuota penerimaan, dan aktivasi batch pendaftaran
@@ -188,6 +188,7 @@ export default function AdminBatchesPage() {
           variant="primary"
           onClick={openCreateModal}
           leftIcon={<Plus className="w-4 h-4" />}
+          className="w-full sm:w-auto"
         >
           Buat Batch Baru
         </Button>
@@ -199,22 +200,22 @@ export default function AdminBatchesPage() {
           Memuat daftar batch...
         </GlassCard>
       ) : batches.length === 0 ? (
-        <GlassCard className="p-12 text-center flex flex-col items-center gap-3">
+        <GlassCard className="p-8 sm:p-12 text-center flex flex-col items-center gap-3">
           <Layers className="w-12 h-12 text-[#64746A]/40" />
           <h3 className="text-base font-bold text-[#1A201C]">Belum Ada Batch</h3>
           <p className="text-xs text-[#64746A] max-w-sm">
             Klik tombol "Buat Batch Baru" di atas untuk menambahkan batch pendaftaran pertama.
           </p>
-          <Button variant="primary" size="sm" onClick={openCreateModal}>
+          <Button variant="primary" size="sm" onClick={openCreateModal} className="w-full sm:w-auto">
             Buat Batch Sekarang
           </Button>
         </GlassCard>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {batches.map((b) => (
             <GlassCard
               key={b.id}
-              className="p-6 flex flex-col justify-between gap-5 border-white/60 hover:shadow-lg transition-all"
+              className="p-4 sm:p-6 flex flex-col justify-between gap-4 sm:gap-5 border-white/60 hover:shadow-lg transition-all"
             >
               <div className="flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
@@ -315,8 +316,8 @@ export default function AdminBatchesPage() {
 
       {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-white/80 flex flex-col gap-5 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/80 flex flex-col gap-4 sm:gap-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <h3 className="text-base font-bold text-[#1A201C]">
                 {editingBatch ? "Edit Batch Oprec" : "Buat Batch Oprec Baru"}
@@ -373,10 +374,11 @@ export default function AdminBatchesPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-black/5">
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setIsModalOpen(false)}
               >
                 Batal
@@ -384,6 +386,7 @@ export default function AdminBatchesPage() {
               <Button
                 variant="primary"
                 size="sm"
+                className="w-full sm:w-auto"
                 isLoading={saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >

@@ -191,7 +191,7 @@ export default function AdminLayout({
       <aside
         data-testid="admin-sidebar"
         className={cn(
-          "fixed lg:static top-0 bottom-0 left-0 z-50 w-72 flex flex-col justify-between p-6 bg-white/60 backdrop-blur-xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300",
+          "fixed lg:static top-0 bottom-0 left-0 z-50 w-72 flex flex-col justify-between p-6 bg-white/70 backdrop-blur-2xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300 overflow-y-auto max-h-screen",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -362,18 +362,19 @@ export default function AdminLayout({
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header Bar */}
-        <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-white/40 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
+        <div className="lg:hidden flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-white/40 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
           <Logo size="sm" subtitle="Admin Panel" />
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 rounded-xl bg-white/60 text-[#1A201C] border border-black/5"
+            aria-label="Buka menu navigasi admin"
           >
             <Menu className="w-5 h-5" />
           </button>
         </div>
 
         {/* Page Children */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>

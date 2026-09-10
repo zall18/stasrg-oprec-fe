@@ -55,10 +55,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
-      <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl border border-white/50 backdrop-blur-xl bg-white/30">
+    <div className="min-h-screen flex items-center justify-center p-3.5 sm:p-8">
+      <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/50 backdrop-blur-xl bg-white/30">
         {/* Left: Form Area */}
-        <div className="p-8 sm:p-12 flex flex-col justify-between bg-white/40 backdrop-blur-md">
+        <div className="p-5 sm:p-8 md:p-12 flex flex-col justify-between bg-white/40 backdrop-blur-md">
           <div className="flex flex-col gap-6">
             <Link href="/" className="inline-block">
               <Logo size="sm" />

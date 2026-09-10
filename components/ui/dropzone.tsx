@@ -100,7 +100,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
         className={cn(
-          "w-full border-2 border-dashed rounded-3xl p-6 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-2.5 backdrop-blur-sm select-none text-center",
+          "w-full border-2 border-dashed rounded-2xl sm:rounded-3xl p-4 sm:p-6 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-2.5 backdrop-blur-sm select-none text-center",
           isDragOver
             ? "border-[#274432] bg-[#274432]/10 scale-[1.01]"
             : "border-black/15 bg-white/30 hover:bg-white/50 hover:border-[#274432]/40",
@@ -117,7 +117,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
         />
 
         {selectedFile ? (
-          <div className="flex items-center justify-between w-full max-w-md bg-white/80 rounded-full px-4 py-2.5 border border-black/5 shadow-xs">
+          <div className="flex items-center justify-between w-full max-w-md bg-white/80 rounded-2xl sm:rounded-full px-3.5 sm:px-4 py-2 sm:py-2.5 border border-black/5 shadow-xs">
             <div className="flex items-center gap-2.5 truncate">
               <FileCheck className="w-5 h-5 text-emerald-700 shrink-0" />
               <div className="flex flex-col text-left truncate">

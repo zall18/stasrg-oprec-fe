@@ -167,7 +167,7 @@ export default function GoldenCandidatePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-        <GlassCard className="p-6 sm:p-8 flex flex-col gap-5 border-white/60">
+        <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
           <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-900">
               <Award className="w-4 h-4" />
@@ -185,17 +185,17 @@ export default function GoldenCandidatePage() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-[#1A201C]">
-                Esai Motivasi & Ketertarikan Riset * (Min. 50 Karakter)
+                Motivasi Mendaftar Golden Candidate *
               </label>
               <textarea
-                rows={4}
-                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60"
-                placeholder="Ceritakan mengapa Anda tertarik dengan riset STAS-RG, topik apa yang ingin Anda eksplorasi, serta komitmen waktu Anda..."
+                rows={5}
+                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 transition-colors"
+                placeholder="Ceritakan mengapa Anda tertarik dengan riset STAS-RG, target publikasi/proyek, dan dedikasi Anda..."
                 {...register("motivasi", {
                   required: "Esai motivasi wajib diisi",
                   minLength: {
-                    value: 50,
-                    message: "Esai motivasi minimal 50 karakter",
+                    value: 20,
+                    message: "Motivasi minimal 20 karakter",
                   },
                 })}
               />
@@ -208,14 +208,18 @@ export default function GoldenCandidatePage() {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-[#1A201C]">
-                Daftar Prestasi / Proyek Unggulan *
+                Prestasi & Portofolio Relevan *
               </label>
               <textarea
-                rows={3}
-                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60"
-                placeholder="Misal: Juara 1 Hackathon Nasional 2025, Publikasi IEEE / Scopus, Asisten Laboratorium, atau Proyek AI Edge..."
+                rows={4}
+                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 transition-colors"
+                placeholder="Tuliskan daftar karya inovatif, link repo GitHub, juara lomba, publikasi ilmiah, atau proyek teknologi..."
                 {...register("pencapaian", {
-                  required: "Daftar prestasi/proyek unggulan wajib diisi",
+                  required: "Daftar pencapaian/prestasi wajib diisi",
+                  minLength: {
+                    value: 10,
+                    message: "Pencapaian minimal 10 karakter",
+                  },
                 })}
               />
               {errors.pencapaian && (
@@ -240,12 +244,12 @@ export default function GoldenCandidatePage() {
         </GlassCard>
 
         {/* Action Controls */}
-        <div className="flex justify-end pt-2">
+        <div className="flex flex-col sm:flex-row sm:justify-end pt-2">
           <Button
             type="submit"
             variant="primary"
             size="lg"
-            className="bg-[#274432] hover:bg-[#1e3426] shadow-xl shadow-[#274432]/20"
+            className="w-full sm:w-auto justify-center bg-[#274432] hover:bg-[#1e3426] shadow-xl shadow-[#274432]/20"
             isLoading={isSubmitting}
             leftIcon={<Save className="w-4 h-4" />}
           >

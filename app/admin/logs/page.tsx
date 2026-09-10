@@ -72,9 +72,9 @@ export default function AdminActivityLogsPage() {
     <div className="flex flex-col gap-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
           Log Aktivitas & Audit Trail
-          <Activity className="w-6 h-6 text-[#274432]" />
+          <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-[#274432]" />
         </h1>
         <p className="text-xs text-[#64746A]">
           Riwayat pencatatan seluruh tindakan administratif dalam sistem seleksi STAS-RG
@@ -82,9 +82,9 @@ export default function AdminActivityLogsPage() {
       </div>
 
       {/* Filter Bar */}
-      <GlassCard className="p-4 flex items-center justify-between gap-4">
+      <GlassCard className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-[#64746A]">
+          <span className="text-xs font-semibold text-[#64746A] whitespace-nowrap">
             Filter Aksi:
           </span>
           <select
@@ -93,7 +93,7 @@ export default function AdminActivityLogsPage() {
               setActionFilter(e.target.value);
               setPage(1);
             }}
-            className="px-3 py-1.5 rounded-xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
           >
             <option value="">Semua Aksi</option>
             <option value="SCHEDULE_INTERVIEW">Jadwal Wawancara</option>
@@ -113,7 +113,7 @@ export default function AdminActivityLogsPage() {
       {/* Logs Table */}
       <GlassCard className="overflow-hidden p-0 border-white/60">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[650px]">
             <thead>
               <tr className="border-b border-black/10 bg-white/40 text-[#274432] uppercase tracking-wider font-bold">
                 <th className="py-4 px-5">Waktu</th>
@@ -174,7 +174,7 @@ export default function AdminActivityLogsPage() {
 
         {/* Pagination Footer */}
         {meta.totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-black/5 text-xs text-[#64746A]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-black/5 text-xs text-[#64746A]">
             <span>
               Halaman {meta.page} dari {meta.totalPages}
             </span>

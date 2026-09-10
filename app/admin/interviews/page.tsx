@@ -172,9 +172,9 @@ export default function AdminInterviewsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
             Penjadwalan Wawancara
-            <CalendarCheck className="w-6 h-6 text-[#274432]" />
+            <CalendarCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#274432]" />
           </h1>
           <p className="text-xs text-[#64746A]">
             Atur dan kelola sesi wawancara daring atau luring bersama kandidat seleksi
@@ -185,19 +185,20 @@ export default function AdminInterviewsPage() {
           variant="primary"
           onClick={openCreateModal}
           leftIcon={<Plus className="w-4 h-4" />}
+          className="w-full sm:w-auto"
         >
           Buat Jadwal Wawancara
         </Button>
       </div>
 
       {/* Filter Bar */}
-      <GlassCard className="p-4 flex items-center justify-between gap-4">
+      <GlassCard className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-[#64746A]">Status:</span>
+          <span className="text-xs font-semibold text-[#64746A] whitespace-nowrap">Status:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
           >
             <option value="">Semua Status Wawancara</option>
             <option value="SCHEDULED">Menunggu Konfirmasi (Scheduled)</option>
@@ -218,7 +219,7 @@ export default function AdminInterviewsPage() {
           Memuat jadwal wawancara...
         </GlassCard>
       ) : interviews.length === 0 ? (
-        <GlassCard className="p-12 text-center flex flex-col items-center gap-3">
+        <GlassCard className="p-8 sm:p-12 text-center flex flex-col items-center gap-3">
           <Calendar className="w-12 h-12 text-[#64746A]/40" />
           <h3 className="text-base font-bold text-[#1A201C]">
             Belum Ada Sesi Wawancara
@@ -226,7 +227,7 @@ export default function AdminInterviewsPage() {
           <p className="text-xs text-[#64746A] max-w-sm">
             Klik tombol di atas untuk menjadwalkan wawancara pertama untuk kandidat.
           </p>
-          <Button variant="primary" size="sm" onClick={openCreateModal}>
+          <Button variant="primary" size="sm" onClick={openCreateModal} className="w-full sm:w-auto">
             Jadwalkan Wawancara Sekarang
           </Button>
         </GlassCard>
@@ -243,25 +244,26 @@ export default function AdminInterviewsPage() {
             return (
               <GlassCard
                 key={item.id}
-                className="p-6 flex flex-col justify-between gap-4 border-white/60 hover:shadow-md transition-all"
+                className="p-4 sm:p-6 flex flex-col justify-between gap-4 border-white/60 hover:shadow-md transition-all"
               >
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
+                  <div className="flex flex-col min-[420px]:flex-row min-[420px]:items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432] shrink-0">
                         <User className="w-4 h-4" />
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-[#1A201C]">
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-[#1A201C] truncate">
                           {candName}
                         </h4>
-                        <span className="text-[11px] text-[#64746A]">
+                        <span className="text-[11px] text-[#64746A] truncate block">
                           {item.candidate?.universitas || "-"}
                         </span>
                       </div>
                     </div>
 
                     <Badge
+                      className="self-start min-[420px]:self-auto"
                       variant={
                         item.status === "CONFIRMED"
                           ? "DITERIMA"
@@ -347,8 +349,8 @@ export default function AdminInterviewsPage() {
 
       {/* Schedule Interview Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/80 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/80 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <h3 className="text-base font-bold text-[#1A201C]">
                 {editingInterview ? "Perbarui Jadwal" : "Buat Jadwal Wawancara"}
@@ -454,10 +456,11 @@ export default function AdminInterviewsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-black/5">
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setIsModalOpen(false)}
               >
                 Batal
@@ -465,6 +468,7 @@ export default function AdminInterviewsPage() {
               <Button
                 variant="primary"
                 size="sm"
+                className="w-full sm:w-auto"
                 isLoading={saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >

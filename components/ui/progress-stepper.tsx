@@ -33,7 +33,7 @@ export function ProgressStepper({ currentStatus, className }: ProgressStepperPro
       <div
         data-testid="progress-stepper"
         className={cn(
-          "p-6 rounded-3xl bg-red-50/80 border border-red-200/70 backdrop-blur-md",
+          "p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-red-50/80 border border-red-200/70 backdrop-blur-md",
           className
         )}
       >
@@ -53,11 +53,11 @@ export function ProgressStepper({ currentStatus, className }: ProgressStepperPro
     <div
       data-testid="progress-stepper"
       className={cn(
-        "p-6 rounded-3xl bg-white/60 border border-white/80 shadow-xs backdrop-blur-md",
+        "p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white/60 border border-white/80 shadow-xs backdrop-blur-md",
         className
       )}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h4 className="text-sm font-bold text-[#1A201C]">
             Tahapan Proses Seleksi
@@ -66,13 +66,13 @@ export function ProgressStepper({ currentStatus, className }: ProgressStepperPro
             Pantau perkembangan posisi aplikasi seleksi Anda secara real-time
           </p>
         </div>
-        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#274432]/10 text-[#274432]">
+        <span className="self-start sm:self-auto text-xs font-semibold px-3 py-1 rounded-full bg-[#274432]/10 text-[#274432]">
           Langkah {activeIndex + 1} dari {STAGES.length}
         </span>
       </div>
 
       {/* Steps List */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 relative">
         {STAGES.map((stage, idx) => {
           const isPassed = idx < activeIndex;
           const isCurrent = idx === activeIndex;

@@ -139,14 +139,14 @@ export default function AdminCandidatesPage() {
         </div>
 
         {/* Tab Selection */}
-        <div className="flex items-center p-1 rounded-full bg-white/50 border border-white/60 shadow-xs backdrop-blur-md">
+        <div className="flex items-center p-1 rounded-2xl sm:rounded-full bg-white/50 border border-white/60 shadow-xs backdrop-blur-md overflow-x-auto max-w-full scrollbar-none">
           <button
             onClick={() => {
               setActiveTab("ALL");
               setPage(1);
             }}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer",
+              "shrink-0 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
               activeTab === "ALL"
                 ? "bg-[#274432] text-white shadow-xs"
                 : "text-[#64746A] hover:text-[#1A201C]"
@@ -160,7 +160,7 @@ export default function AdminCandidatesPage() {
               setPage(1);
             }}
             className={cn(
-              "inline-flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer",
+              "shrink-0 inline-flex items-center gap-1 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
               activeTab === "GOLDEN"
                 ? "bg-amber-600 text-white shadow-xs"
                 : "text-[#64746A] hover:text-[#1A201C]"
@@ -175,7 +175,7 @@ export default function AdminCandidatesPage() {
               setPage(1);
             }}
             className={cn(
-              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer",
+              "shrink-0 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
               activeTab === "OPREC"
                 ? "bg-[#274432] text-white shadow-xs"
                 : "text-[#64746A] hover:text-[#1A201C]"
@@ -188,7 +188,7 @@ export default function AdminCandidatesPage() {
 
       {/* Filter & Search Bar */}
       <GlassCard className="p-4 flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="w-full sm:max-w-md">
             <Input
               placeholder="Cari nama, NIM, email, atau universitas..."
@@ -205,7 +205,7 @@ export default function AdminCandidatesPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+              className="flex-1 sm:flex-none px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
             >
               <option value="">Semua Status</option>
               <option value="PENDING">Pending</option>
@@ -222,7 +222,7 @@ export default function AdminCandidatesPage() {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+              className="flex-1 sm:flex-none px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
             >
               <option value="">Semua Role</option>
               <option value="RISET">Riset</option>
@@ -231,7 +231,7 @@ export default function AdminCandidatesPage() {
 
             <button
               onClick={() => refetch()}
-              className="p-2 hover:bg-black/5 rounded-full text-[#274432] transition-colors cursor-pointer"
+              className="p-2 hover:bg-black/5 rounded-full text-[#274432] transition-colors cursor-pointer shrink-0"
               title="Muat ulang data"
             >
               <RefreshCw

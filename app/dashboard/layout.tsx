@@ -15,6 +15,8 @@ import {
   Calendar,
   History,
   Sparkles,
+  Menu,
+  X,
 } from "lucide-react";
 import { NotificationBell } from "@/components/ui/notification-bell";
 import { cn } from "@/lib/utils";
@@ -106,7 +108,7 @@ export default function CandidateLayout({
       <aside
         data-testid="candidate-sidebar"
         className={cn(
-          "fixed lg:static top-0 bottom-0 left-0 z-50 w-72 flex flex-col justify-between p-6 bg-white/60 backdrop-blur-xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300",
+          "fixed lg:static top-0 bottom-0 left-0 z-50 w-72 flex flex-col justify-between p-6 bg-white/70 backdrop-blur-2xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300 overflow-y-auto max-h-screen",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -118,8 +120,9 @@ export default function CandidateLayout({
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="lg:hidden p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
+              aria-label="Tutup menu navigasi"
             >
-              <LogOut className="w-5 h-5 rotate-180" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -182,21 +185,22 @@ export default function CandidateLayout({
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile Header Bar */}
-        <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-white/40 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
+        <div className="lg:hidden flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-white/40 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
           <Logo size="sm" subtitle="Candidate Panel" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <NotificationBell />
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="p-2 rounded-xl bg-white/60 text-[#1A201C] border border-black/5"
+              aria-label="Buka menu navigasi"
             >
-              <User className="w-5 h-5" />
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Page Children */}
-        <main className="flex-1 p-4 sm:p-8 max-w-6xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-8 max-w-6xl w-full mx-auto">
           {children}
         </main>
       </div>

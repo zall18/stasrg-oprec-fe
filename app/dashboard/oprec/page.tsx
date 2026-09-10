@@ -71,10 +71,10 @@ export default function OprecApplyPage() {
           Memeriksa status batch seleksi dari server...
         </GlassCard>
       ) : isActive ? (
-        <GlassCard className="p-6 sm:p-8 flex flex-col gap-6 border-white/60">
+        <GlassCard className="p-4 sm:p-8 flex flex-col gap-6 border-white/60">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 pb-4">
             <div className="flex items-center gap-2.5">
-              <span className="relative flex h-3 w-3">
+              <span className="relative flex h-3 w-3 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-600"></span>
               </span>
@@ -99,7 +99,7 @@ export default function OprecApplyPage() {
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-4 p-4 rounded-2xl bg-[#F5F7EC]/60 border border-black/5 text-xs text-[#1A201C]">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#274432]" />
+                  <Calendar className="w-4 h-4 text-[#274432] shrink-0" />
                   <span>
                     <strong>Mulai:</strong>{" "}
                     {oprec?.startDate
@@ -109,7 +109,7 @@ export default function OprecApplyPage() {
                 </div>
                 <span>•</span>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#274432]" />
+                  <Calendar className="w-4 h-4 text-[#274432] shrink-0" />
                   <span>
                     <strong>Batas Akhir:</strong>{" "}
                     {oprec?.endDate
@@ -121,11 +121,11 @@ export default function OprecApplyPage() {
 
               {/* Countdown Banner */}
               {oprec?.endDate && (
-                <div className="p-4 rounded-2xl bg-[#274432]/5 border border-[#274432]/20 flex items-center justify-between">
+                <div className="p-4 rounded-2xl bg-[#274432]/5 border border-[#274432]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-xs font-bold text-[#274432]">
                     Batas Pendaftaran Berakhir:
                   </span>
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#274432] text-white">
+                  <span className="self-start sm:self-auto text-xs font-semibold px-3 py-1 rounded-full bg-[#274432] text-white">
                     {new Date(oprec.endDate) > new Date()
                       ? `${Math.ceil((new Date(oprec.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} Hari Lagi`
                       : "Pendaftaran Ditutup"}
@@ -154,10 +154,11 @@ export default function OprecApplyPage() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-end pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end pt-2">
               <Button
                 variant="primary"
                 size="lg"
+                className="w-full sm:w-auto justify-center"
                 isLoading={isApplying}
                 onClick={handleApply}
                 rightIcon={<Rocket className="w-4 h-4" />}

@@ -82,9 +82,9 @@ export default function CandidateDashboardPage() {
   );
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6 sm:gap-8">
       {/* Welcome Banner */}
-      <GlassCard className="p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-white/60">
+      <GlassCard className="p-5 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6 border-white/60">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#274432]">
@@ -106,19 +106,20 @@ export default function CandidateDashboardPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           {!isProfileComplete ? (
-            <Link href="/dashboard/profile">
+            <Link href="/dashboard/profile" className="w-full sm:w-auto">
               <Button
                 variant="primary"
+                className="w-full sm:w-auto justify-center"
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
                 Lengkapi Profil Sekarang
               </Button>
             </Link>
           ) : (
-            <Link href="/dashboard/profile">
-              <Button variant="secondary" leftIcon={<FileText className="w-4 h-4" />}>
+            <Link href="/dashboard/profile" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full sm:w-auto justify-center" leftIcon={<FileText className="w-4 h-4" />}>
                 Perbarui Profil
               </Button>
             </Link>
@@ -131,9 +132,9 @@ export default function CandidateDashboardPage() {
 
       {/* Interview Alert Banner if any upcoming interview */}
       {upcomingInterview && (
-        <div className="p-5 rounded-3xl bg-emerald-700 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-emerald-700 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-white/20">
+            <div className="p-2.5 rounded-2xl bg-white/20 shrink-0">
               <Calendar className="w-6 h-6" />
             </div>
             <div>
@@ -149,11 +150,11 @@ export default function CandidateDashboardPage() {
               </h4>
             </div>
           </div>
-          <Link href="/dashboard/interviews">
+          <Link href="/dashboard/interviews" className="w-full sm:w-auto">
             <Button
               variant="secondary"
               size="sm"
-              className="bg-white text-emerald-900 font-bold hover:bg-emerald-50"
+              className="w-full sm:w-auto justify-center bg-white text-emerald-900 font-bold hover:bg-emerald-50"
             >
               Lihat Detail & Konfirmasi
             </Button>

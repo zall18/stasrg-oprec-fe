@@ -111,11 +111,11 @@ export default function CandidateInterviewsPage() {
             return (
               <GlassCard
                 key={item.id}
-                className="p-6 sm:p-8 flex flex-col gap-5 border-white/60"
+                className="p-4 sm:p-8 flex flex-col gap-5 border-white/60"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/5 pb-4">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2.5 rounded-2xl bg-[#274432]/10 text-[#274432]">
+                    <div className="p-2.5 rounded-2xl bg-[#274432]/10 text-[#274432] shrink-0">
                       {isOnline ? (
                         <Video className="w-5 h-5" />
                       ) : (
@@ -200,13 +200,14 @@ export default function CandidateInterviewsPage() {
 
                 {/* Confirm Button if SCHEDULED */}
                 {item.status === "SCHEDULED" && (
-                  <div className="flex items-center justify-between pt-2 border-t border-black/5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-black/5">
                     <span className="text-xs text-[#64746A]">
                       Mohon konfirmasi ketersediaan hadir Anda tepat waktu.
                     </span>
                     <Button
                       variant="primary"
                       size="sm"
+                      className="w-full sm:w-auto justify-center"
                       isLoading={confirmMutation.isPending}
                       onClick={() => confirmMutation.mutate(item.id)}
                       leftIcon={<CheckCircle2 className="w-4 h-4" />}

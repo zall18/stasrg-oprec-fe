@@ -46,7 +46,7 @@ export default function AdminBatchDetailPage({
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col min-[480px]:flex-row items-start min-[480px]:items-center gap-3">
           <Link href="/admin/oprec">
             <Button
               variant="outline"
@@ -56,9 +56,9 @@ export default function AdminBatchDetailPage({
               Kembali ke Batch
             </Button>
           </Link>
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
-              {batch?.name || "Detail Batch"}
+          <div className="flex flex-col min-w-0">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] flex flex-wrap items-center gap-2">
+              <span>{batch?.name || "Detail Batch"}</span>
               <Badge variant={batch?.isActive ? "DITERIMA" : "DEFAULT"}>
                 {batch?.isActive ? "Batch Aktif" : "Non-Aktif"}
               </Badge>
@@ -70,8 +70,8 @@ export default function AdminBatchDetailPage({
         </div>
 
         {batch?.name && (
-          <Link href={`/admin/candidates?batch=${encodeURIComponent(batch.name)}`}>
-            <Button variant="primary" rightIcon={<ArrowRight className="w-4 h-4" />}>
+          <Link href={`/admin/candidates?batch=${encodeURIComponent(batch.name)}`} className="w-full sm:w-auto">
+            <Button variant="primary" rightIcon={<ArrowRight className="w-4 h-4" />} className="w-full sm:w-auto">
               Lihat Semua Pelamar Batch Ini
             </Button>
           </Link>
@@ -89,46 +89,46 @@ export default function AdminBatchDetailPage({
       ) : (
         <div className="flex flex-col gap-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <GlassCard className="p-5 flex flex-col gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <GlassCard className="p-4 sm:p-5 flex flex-col gap-1">
               <span className="text-xs font-semibold text-[#64746A]">
                 Total Pendaftar
               </span>
-              <span className="text-2xl font-extrabold text-[#1A201C]">
+              <span className="text-xl sm:text-2xl font-extrabold text-[#1A201C]">
                 {batch.totalApplicants || 0}
               </span>
             </GlassCard>
 
-            <GlassCard className="p-5 flex flex-col gap-1">
+            <GlassCard className="p-4 sm:p-5 flex flex-col gap-1">
               <span className="text-xs font-semibold text-[#64746A]">
                 Target Kuota
               </span>
-              <span className="text-2xl font-extrabold text-[#1A201C]">
+              <span className="text-xl sm:text-2xl font-extrabold text-[#1A201C]">
                 {batch.quota || 30}
               </span>
             </GlassCard>
 
-            <GlassCard className="p-5 flex flex-col gap-1">
+            <GlassCard className="p-4 sm:p-5 flex flex-col gap-1">
               <span className="text-xs font-semibold text-[#64746A]">
                 Jalur Golden Ticket
               </span>
-              <span className="text-2xl font-extrabold text-amber-700">
+              <span className="text-xl sm:text-2xl font-extrabold text-amber-700">
                 {batch.goldenCandidateCount || 0}
               </span>
             </GlassCard>
 
-            <GlassCard className="p-5 flex flex-col gap-1">
+            <GlassCard className="p-4 sm:p-5 flex flex-col gap-1">
               <span className="text-xs font-semibold text-[#64746A]">
                 Telah Diterima
               </span>
-              <span className="text-2xl font-extrabold text-emerald-800">
+              <span className="text-xl sm:text-2xl font-extrabold text-emerald-800">
                 {statusBreakdown.DITERIMA || 0}
               </span>
             </GlassCard>
           </div>
 
           {/* Description Card */}
-          <GlassCard className="p-6 flex flex-col gap-3">
+          <GlassCard className="p-4 sm:p-6 flex flex-col gap-3">
             <h3 className="text-sm font-bold text-[#1A201C]">Deskripsi Batch</h3>
             <p className="text-xs text-[#64746A] leading-relaxed">
               {batch.description || "Tidak ada deskripsi rinci untuk batch ini."}
@@ -148,11 +148,11 @@ export default function AdminBatchDetailPage({
           {/* Distribution Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Status Breakdown */}
-            <GlassCard className="p-6 flex flex-col gap-4">
+            <GlassCard className="p-4 sm:p-6 flex flex-col gap-4">
               <h3 className="text-sm font-bold text-[#1A201C]">
                 Sebaran Tahapan Status Seleksi
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 {Object.entries({
                   PENDING: "Pending",
                   SELEKSI_BERKAS: "Berkas",
@@ -177,11 +177,11 @@ export default function AdminBatchDetailPage({
             </GlassCard>
 
             {/* Role Breakdown */}
-            <GlassCard className="p-6 flex flex-col gap-4">
+            <GlassCard className="p-4 sm:p-6 flex flex-col gap-4">
               <h3 className="text-sm font-bold text-[#1A201C]">
                 Peminatan Posisi (Role)
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
                 <div className="p-4 rounded-2xl bg-white/50 border border-black/5 flex flex-col gap-1">
                   <span className="text-xs text-[#64746A] font-semibold">
                     Mahasiswa Riset

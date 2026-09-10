@@ -136,7 +136,7 @@ export default function CandidateDetailPage() {
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       {/* Back button & Title */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col min-[480px]:flex-row items-start min-[480px]:items-center gap-3">
           <Link href="/admin/candidates">
             <Button
               variant="outline"
@@ -146,20 +146,20 @@ export default function CandidateDetailPage() {
               Kembali
             </Button>
           </Link>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-extrabold tracking-tight text-[#1A201C]">
+          <div className="flex flex-col min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] break-words">
                 {profile?.fullName || candidate?.user?.email || "Detail Kandidat"}
               </h1>
               {isGolden && <Badge variant="GOLDEN">★ Golden Ticket</Badge>}
             </div>
-            <span className="text-xs text-[#64746A]">
+            <span className="text-xs text-[#64746A] break-words">
               Peminatan: <strong>{profile?.roleInterest || "RISET"}</strong> • Email: {profile?.user?.email || candidate?.email || "-"}
             </span>
           </div>
         </div>
 
-        <Badge variant={currentStatus as BadgeVariant}>
+        <Badge variant={currentStatus as BadgeVariant} className="self-start sm:self-auto">
           Tahapan: {currentStatus}
         </Badge>
       </div>
@@ -168,7 +168,7 @@ export default function CandidateDetailPage() {
         {/* Left Column: Data Detail */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Section 1: Data Akademik */}
-          <GlassCard className="p-6 flex flex-col gap-4">
+          <GlassCard className="p-4 sm:p-6 flex flex-col gap-4">
             <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
               <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
                 <GraduationCap className="w-4 h-4" />
@@ -178,7 +178,7 @@ export default function CandidateDetailPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 text-xs">
               <div>
                 <span className="text-[#64746A] block">NIM</span>
                 <span className="font-semibold text-sm text-[#1A201C]">
@@ -187,13 +187,13 @@ export default function CandidateDetailPage() {
               </div>
               <div>
                 <span className="text-[#64746A] block">Perguruan Tinggi</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
+                <span className="font-semibold text-sm text-[#1A201C] break-words">
                   {profile?.universitas || "-"}
                 </span>
               </div>
               <div>
                 <span className="text-[#64746A] block">Program Studi</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
+                <span className="font-semibold text-sm text-[#1A201C] break-words">
                   {profile?.programStudi || "-"}
                 </span>
               </div>
@@ -230,7 +230,7 @@ export default function CandidateDetailPage() {
           </GlassCard>
 
           {/* Section 2: Dokumen & Tautan */}
-          <GlassCard className="p-6 flex flex-col gap-4">
+          <GlassCard className="p-4 sm:p-6 flex flex-col gap-4">
             <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
               <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
                 <FileText className="w-4 h-4" />
@@ -242,15 +242,15 @@ export default function CandidateDetailPage() {
 
             <div className="flex flex-col gap-3 text-xs">
               {/* CV Preview & Download */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/40 border border-black/5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-2xl bg-white/40 border border-black/5">
                 <div className="flex items-center gap-2.5">
-                  <FileText className="w-4 h-4 text-[#274432]" />
+                  <FileText className="w-4 h-4 text-[#274432] shrink-0" />
                   <span className="font-semibold text-[#1A201C]">
                     Curriculum Vitae (CV PDF)
                   </span>
                 </div>
                 {profile?.cvUrl ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <a
                       href={profile.cvUrl}
                       target="_blank"
@@ -280,9 +280,9 @@ export default function CandidateDetailPage() {
               </div>
 
               {/* Transkrip Preview & Download */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/40 border border-black/5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-2xl bg-white/40 border border-black/5">
                 <div className="flex items-center gap-2.5">
-                  <FileText className="w-4 h-4 text-[#274432]" />
+                  <FileText className="w-4 h-4 text-[#274432] shrink-0" />
                   <span className="font-semibold text-[#1A201C]">
                     Transkrip Nilai Akademik
                   </span>
@@ -310,7 +310,7 @@ export default function CandidateDetailPage() {
 
               {/* Portofolio URL */}
               {profile?.portfolioUrl && (
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/40 border border-black/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-2xl bg-white/40 border border-black/5">
                   <span className="font-semibold text-[#1A201C]">
                     Tautan Portofolio / Karya
                   </span>
@@ -330,7 +330,7 @@ export default function CandidateDetailPage() {
 
         {/* Right Column: Admin Actions */}
         <div className="flex flex-col gap-6">
-          <GlassCard className="p-6 flex flex-col gap-5 border-white/60">
+          <GlassCard className="p-4 sm:p-6 flex flex-col gap-5 border-white/60">
             <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-800">
                 <CheckCircle2 className="w-4 h-4" />
@@ -380,7 +380,7 @@ export default function CandidateDetailPage() {
           </GlassCard>
 
           {/* Quick Interview Link */}
-          <GlassCard className="p-6 flex flex-col gap-3 border-white/60">
+          <GlassCard className="p-4 sm:p-6 flex flex-col gap-3 border-white/60">
             <h3 className="text-sm font-bold text-[#1A201C] flex items-center gap-2">
               <Calendar className="w-4 h-4 text-[#274432]" />
               Sesi Wawancara
@@ -397,7 +397,7 @@ export default function CandidateDetailPage() {
 
           {/* Golden Candidate Evaluation Card */}
           {goldenApp && (
-            <GlassCard className="p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/10">
+            <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/10">
               <div className="flex items-center gap-2.5 border-b border-amber-500/20 pb-3">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
                   <Sparkles className="w-4 h-4" />
@@ -524,7 +524,7 @@ function CandidateNotesSection({
   const notes = notesData || [];
 
   return (
-    <GlassCard className="p-6 flex flex-col gap-4 border-white/60">
+    <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-white/60">
       <div className="flex items-center justify-between border-b border-black/5 pb-3">
         <h3 className="text-sm font-bold text-[#1A201C] flex items-center gap-2">
           Catatan Internal Admin

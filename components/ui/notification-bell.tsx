@@ -97,7 +97,7 @@ export function NotificationBell() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-3xl bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2.5rem)] max-w-sm sm:w-96 rounded-3xl bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           <div className="p-4 border-b border-black/5 flex items-center justify-between">
             <span className="text-xs font-bold text-[#1A201C] flex items-center gap-2">
               <Bell className="w-3.5 h-3.5 text-[#274432]" />

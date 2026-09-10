@@ -134,9 +134,9 @@ export default function AdminAnnouncementsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] flex items-center gap-2">
             Manajemen Pengumuman
-            <Megaphone className="w-6 h-6 text-[#274432]" />
+            <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-[#274432]" />
           </h1>
           <p className="text-xs text-[#64746A]">
             Terbitkan informasi resmi, pengumuman hasil seleksi, dan arahan pendaftaran
@@ -147,6 +147,7 @@ export default function AdminAnnouncementsPage() {
           variant="primary"
           onClick={openCreateModal}
           leftIcon={<Plus className="w-4 h-4" />}
+          className="w-full sm:w-auto"
         >
           Buat Pengumuman
         </Button>
@@ -158,7 +159,7 @@ export default function AdminAnnouncementsPage() {
           Memuat pengumuman...
         </GlassCard>
       ) : list.length === 0 ? (
-        <GlassCard className="p-12 text-center flex flex-col items-center gap-3">
+        <GlassCard className="p-8 sm:p-12 text-center flex flex-col items-center gap-3">
           <Megaphone className="w-12 h-12 text-[#64746A]/40" />
           <h3 className="text-base font-bold text-[#1A201C]">
             Belum Ada Pengumuman
@@ -166,7 +167,7 @@ export default function AdminAnnouncementsPage() {
           <p className="text-xs text-[#64746A] max-w-sm">
             Klik tombol di atas untuk menerbitkan pengumuman publik pertama bagi calon pendaftar.
           </p>
-          <Button variant="primary" size="sm" onClick={openCreateModal}>
+          <Button variant="primary" size="sm" onClick={openCreateModal} className="w-full sm:w-auto">
             Buat Pengumuman Sekarang
           </Button>
         </GlassCard>
@@ -175,18 +176,18 @@ export default function AdminAnnouncementsPage() {
           {list.map((item) => (
             <GlassCard
               key={item.id}
-              className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-white/60 hover:shadow-md transition-all"
+              className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-white/60 hover:shadow-md transition-all"
             >
               <div className="flex flex-col gap-2 max-w-2xl">
-                <div className="flex items-center gap-2.5">
-                  <h3 className="text-base font-bold text-[#1A201C]">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h3 className="text-base font-bold text-[#1A201C] break-words">
                     {item.title}
                   </h3>
                   <Badge variant={item.isActive ? "DITERIMA" : "DEFAULT"}>
                     {item.isActive ? "Tayang" : "Draft / Non-Aktif"}
                   </Badge>
                 </div>
-                <p className="text-xs text-[#64746A] leading-relaxed">
+                <p className="text-xs text-[#64746A] leading-relaxed break-words">
                   {item.content}
                 </p>
                 <span className="text-[11px] text-[#64746A]/70 flex items-center gap-1 mt-1">
@@ -200,7 +201,7 @@ export default function AdminAnnouncementsPage() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 self-end sm:self-center">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end pt-3 sm:pt-0 border-t sm:border-t-0 border-black/5">
                 <Button
                   variant="outline"
                   size="sm"
@@ -221,29 +222,31 @@ export default function AdminAnnouncementsPage() {
                   {item.isActive ? "Nonaktifkan" : "Aktifkan"}
                 </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-2"
-                  onClick={() => openEditModal(item)}
-                  aria-label="Edit Pengumuman"
-                >
-                  <Edit2 className="w-3.5 h-3.5 text-[#64746A]" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-2"
+                    onClick={() => openEditModal(item)}
+                    aria-label="Edit Pengumuman"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-[#64746A]" />
+                  </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-2 text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    if (confirm(`Hapus pengumuman "${item.title}"?`)) {
-                      deleteMutation.mutate(item.id);
-                    }
-                  }}
-                  aria-label="Hapus Pengumuman"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-2 text-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      if (confirm(`Hapus pengumuman "${item.title}"?`)) {
+                        deleteMutation.mutate(item.id);
+                      }
+                    }}
+                    aria-label="Hapus Pengumuman"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             </GlassCard>
           ))}
@@ -252,8 +255,8 @@ export default function AdminAnnouncementsPage() {
 
       {/* Modal Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/80 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/80 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <h3 className="text-base font-bold text-[#1A201C]">
                 {editingItem ? "Edit Pengumuman" : "Buat Pengumuman Baru"}
@@ -300,10 +303,11 @@ export default function AdminAnnouncementsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-black/5">
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => setIsModalOpen(false)}
               >
                 Batal
@@ -311,6 +315,7 @@ export default function AdminAnnouncementsPage() {
               <Button
                 variant="primary"
                 size="sm"
+                className="w-full sm:w-auto"
                 isLoading={saveMutation.isPending}
                 onClick={() => saveMutation.mutate()}
               >

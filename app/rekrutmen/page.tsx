@@ -31,6 +31,8 @@ import {
   HelpCircle,
   Lock,
   Mail,
+  Menu,
+  X,
 } from "lucide-react";
 
 // Schema for direct registration & apply
@@ -59,6 +61,7 @@ export default function RekrutmenPage() {
   const [transkripFile, setTranskripFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [oprecStatus, setOprecStatus] = useState<any>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadFromStorage();
@@ -166,12 +169,13 @@ export default function RekrutmenPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F2F4F0] text-[#1A201C]">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-4 backdrop-blur-md bg-white/30 border-b border-white/40">
+      <header className="sticky top-0 z-40 w-full px-4 sm:px-8 py-3.5 sm:py-4 backdrop-blur-md bg-white/40 border-b border-white/50">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/">
             <Logo size="md" subtitle="Panduan & Pendaftaran" />
           </Link>
-          <div className="flex items-center gap-3">
+          {/* Desktop Nav Items */}
+          <div className="hidden sm:flex items-center gap-3">
             {isAuthenticated ? (
               <Link href="/dashboard">
                 <Button variant="primary" size="sm">
@@ -193,23 +197,71 @@ export default function RekrutmenPage() {
               </>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="sm:hidden p-2 rounded-2xl bg-white/70 hover:bg-white text-[#1A201C] border border-black/5 shadow-xs"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="sm:hidden mt-3 pt-3 border-t border-black/5 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="px-4 py-2.5 rounded-2xl hover:bg-white/60 text-xs font-semibold text-[#1A201C]">
+                ← Beranda Utama
+              </div>
+            </Link>
+            <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900 flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Jalur Golden Candidate</span>
+              </div>
+            </Link>
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-black/5">
+              {isAuthenticated ? (
+                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="col-span-2">
+                  <Button variant="primary" size="sm" className="w-full text-xs">
+                    Buka Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full text-xs">
+                      Masuk
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="primary" size="sm" className="w-full text-xs">
+                      Registrasi
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-8 pt-12 pb-8 flex flex-col items-center text-center gap-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/60 border border-white/60 shadow-xs text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+      <section className="max-w-5xl mx-auto px-4 sm:px-8 pt-8 sm:pt-12 pb-6 sm:pb-8 flex flex-col items-center text-center gap-4 sm:gap-6">
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-2xl sm:rounded-full bg-white/60 border border-white/60 shadow-xs text-xs font-semibold max-w-full">
+          <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
           <span>Informasi Resmi Rekrutmen Laboratorium STAS-RG</span>
           <Badge variant={isBatchActive ? "DITERIMA" : "PENDING"}>
             {isBatchActive ? "Batch Aktif Dibuka" : "Jalur Golden Terbuka"}
           </Badge>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight px-2">
           Panduan Lengkap Seleksi & Pendaftaran Kandidat
         </h1>
-        <p className="text-sm sm:text-base text-[#64746A] max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-base text-[#64746A] max-w-2xl leading-relaxed">
           Pelajari peran riset, persyaratan berkas, alur tahapan seleksi, dan
           kirimkan formulir pendaftaran Anda secara langsung di halaman ini.
         </p>
@@ -331,7 +383,7 @@ export default function RekrutmenPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             {/* Bagian A: Identitas & Akun */}
-            <GlassCard className="p-6 sm:p-8 flex flex-col gap-5 border-white/60">
+            <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
               <h3 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-2">
                 Data Identitas & Akun
               </h3>
@@ -369,7 +421,7 @@ export default function RekrutmenPage() {
             </GlassCard>
 
             {/* Bagian B: Akademik & Peminatan */}
-            <GlassCard className="p-6 sm:p-8 flex flex-col gap-5 border-white/60">
+            <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
               <h3 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-2">
                 Data Akademik & Peminatan
               </h3>
@@ -434,7 +486,7 @@ export default function RekrutmenPage() {
             </GlassCard>
 
             {/* Bagian C: Unggah Dokumen PDF */}
-            <GlassCard className="p-6 sm:p-8 flex flex-col gap-5 border-white/60">
+            <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
               <h3 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-2">
                 Unggah Berkas Dokumen (PDF Maks 5MB)
               </h3>
@@ -453,9 +505,9 @@ export default function RekrutmenPage() {
             </GlassCard>
 
             {/* Tombol Kirim */}
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <Link href="/">
-                <Button variant="secondary" type="button">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-2 w-full">
+              <Link href="/" className="w-full sm:w-auto">
+                <Button variant="secondary" type="button" className="w-full sm:w-auto justify-center">
                   Batal
                 </Button>
               </Link>
@@ -463,6 +515,7 @@ export default function RekrutmenPage() {
                 type="submit"
                 variant="primary"
                 size="lg"
+                className="w-full sm:w-auto justify-center"
                 isLoading={isSubmitting}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
