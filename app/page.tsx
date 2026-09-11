@@ -22,6 +22,8 @@ import { api } from "@/lib/api/client";
 interface OprecStatus {
   isActive?: boolean;
   isOprecActive?: boolean;
+  isGoldenCandidateActive?: boolean;
+  allowGoldenCandidate?: boolean;
   currentBatch?: string;
   startDate?: string;
   endDate?: string;
@@ -61,8 +63,8 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
-  const isActive = Boolean(
-    oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false
+  const isAnyActive = Boolean(
+    oprecStatus?.isOprecActive || oprecStatus?.isActive || oprecStatus?.isGoldenCandidateActive
   );
 
   return (
@@ -155,23 +157,24 @@ export default function HomePage() {
           <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span
               className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                isActive ? "bg-emerald-400" : "bg-gray-400"
+                isAnyActive ? "bg-emerald-400" : "bg-gray-400"
               }`}
             ></span>
             <span
               className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                isActive ? "bg-emerald-600" : "bg-gray-500"
+                isAnyActive ? "bg-emerald-600" : "bg-gray-500"
               }`}
             ></span>
           </span>
           <span className="text-xs font-semibold text-[#1A201C]">
             {isLoadingStatus
               ? "Memeriksa periode pendaftaran..."
-              : isActive
-              ? `Pendaftaran Aktif: ${oprecStatus?.currentBatch || "Batch Terbuka"}`
-              : "Pendaftaran Regular Sedang Ditutup"}
+              : oprecStatus?.isGoldenCandidateActive
+              ? `Jalur Golden Candidate Dibuka: ${oprecStatus?.currentBatch || "Batch Aktif"}`
+              : (oprecStatus?.isActive || oprecStatus?.isOprecActive)
+              ? `Oprec Reguler Dibuka: ${oprecStatus?.currentBatch || "Batch Aktif"}`
+              : "Semua Jalur Pendaftaran Sedang Ditutup"}
           </span>
-          <Badge variant="GOLDEN">Golden Ticket Tersedia</Badge>
         </div>
 
         {/* Announcement Banner if present */}
@@ -202,22 +205,27 @@ export default function HomePage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full max-w-md sm:max-w-none">
-          <Link href="/rekrutmen" className="w-full sm:w-auto">
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full sm:w-auto justify-center"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-            >
-              Info Rekrutmen & Formulir Pendaftaran
-            </Button>
-          </Link>
-          <Link href="/auth/login" className="w-full sm:w-auto">
-            <Button variant="secondary" size="lg" className="w-full sm:w-auto justify-center">
-              Portal Akun Terdaftar
-            </Button>
-          </Link>
+        <div className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-md sm:max-w-none">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full">
+            <Link href="/auth/login" className="w-full sm:w-auto">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full sm:w-auto justify-center"
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+              >
+                Login untuk Mendaftar
+              </Button>
+            </Link>
+            <Link href="/rekrutmen" className="w-full sm:w-auto">
+              <Button variant="secondary" size="lg" className="w-full sm:w-auto justify-center">
+                Pelajari Alur Rekrutmen
+              </Button>
+            </Link>
+          </div>
+          <span className="text-xs text-[#64746A]">
+            * Anda wajib memiliki akun untuk dapat mengisi formulir pendaftaran.
+          </span>
         </div>
 
         {/* 3 Pillars / Roles */}

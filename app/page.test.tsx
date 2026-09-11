@@ -33,6 +33,6 @@ describe("app/page", () => {
     expect(screen.getByText("Mahasiswa Riset")).toBeInTheDocument();
     expect(screen.getByText("Mahasiswa Magang")).toBeInTheDocument();
     expect(screen.getByText("Golden Candidate")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Info Rekrutmen & Formulir Pendaftaran/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Login untuk Mendaftar/i })).toBeInTheDocument();
   });
 });

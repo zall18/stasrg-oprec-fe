@@ -23,18 +23,31 @@ export default function OprecApplyPage() {
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
-  const { data: statusData, isLoading } = useQuery({
-    queryKey: ["oprecStatus"],
+  const { data: pageData, isLoading } = useQuery({
+    queryKey: ["oprecPageData"],
     queryFn: async () => {
-      const res = await api.getOprecStatus();
-      return res.data?.data;
+      const [statusRes, goldenRes, regRes] = await Promise.allSettled([
+        api.getOprecStatus(),
+        api.getGoldenApplication(),
+        api.getRegistrationsHistory(),
+      ]);
+
+      const oprec = statusRes.status === "fulfilled" ? statusRes.value.data?.data : null;
+      const golden = goldenRes.status === "fulfilled" ? goldenRes.value.data?.data : null;
+      const regs = regRes.status === "fulfilled" && Array.isArray(regRes.value.data?.data) ? regRes.value.data.data : [];
+
+      return { oprec, golden, regs };
     },
   });
 
-  const oprec = statusData;
+  const oprec = pageData?.oprec;
   const isActive = Boolean(
     oprec?.isOprecActive ?? oprec?.isActive ?? false
   );
+
+  const isBlockedByGolden = pageData?.golden && pageData?.golden.status !== "REJECTED";
+  const isBlockedByReg = pageData?.regs.some((r: any) => r.batch?.name === oprec?.currentBatch);
+  const isBlocked = isBlockedByGolden || isBlockedByReg || hasApplied;
 
   const handleApply = async () => {
     setIsApplying(true);
@@ -138,10 +151,24 @@ export default function OprecApplyPage() {
           <div className="p-4 rounded-2xl bg-white/40 border border-black/5 flex items-start gap-3 text-xs text-[#64746A]">
             <Info className="w-4 h-4 text-[#274432] shrink-0 mt-0.5" />
             <span>
-              Pastikan profil Anda di menu <strong>Formulir Golden Candidate</strong>{" "}
+              Pastikan profil Anda di menu <strong>Profil Saya</strong>{" "}
               sudah terisi lengkap dengan CV terbaru sebelum menekan tombol pendaftaran.
             </span>
           </div>
+
+          {(isBlockedByGolden || isBlockedByReg) && !hasApplied && (
+            <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-500/20 flex flex-col gap-2 shadow-xs">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                <AlertCircle className="w-4 h-4" />
+                Pendaftaran Tidak Tersedia
+              </div>
+              <p className="text-xs text-amber-800/80">
+                {isBlockedByGolden
+                  ? "Anda memiliki aplikasi Golden Candidate yang sedang diproses atau telah diterima. Anda tidak dapat mendaftar Oprec Reguler."
+                  : `Anda sudah terdaftar untuk batch ${oprec?.currentBatch || "ini"}.`}
+              </p>
+            </div>
+          )}
 
           {hasApplied ? (
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50/80 border border-emerald-500/30 text-emerald-950">
@@ -158,8 +185,9 @@ export default function OprecApplyPage() {
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full sm:w-auto justify-center"
+                className="w-full sm:w-auto justify-center disabled:opacity-50"
                 isLoading={isApplying}
+                disabled={isBlocked}
                 onClick={handleApply}
                 rightIcon={<Rocket className="w-4 h-4" />}
               >

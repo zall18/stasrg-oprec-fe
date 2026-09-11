@@ -334,12 +334,14 @@ export default function AdminCandidatesPage() {
                 candidates.map((item: any) => {
                   const cand = item.candidate || item;
                   const itemKey = item.registrationId || item.id || cand.id;
+                  const goldenApp = cand.goldenApplication || item.goldenApplication;
                   const isGolden = Boolean(
                     cand.isGoldenCandidate ||
                     cand.isGolden ||
                     item.isGoldenCandidate ||
                     item.isGolden
                   );
+                  const goldenStatus = goldenApp?.status || (isGolden ? "ACCEPTED" : undefined);
                   const name =
                     cand.fullName ||
                     item.fullName ||
@@ -378,12 +380,23 @@ export default function AdminCandidatesPage() {
                         <div className="flex flex-col">
                           <div className="flex items-center gap-1.5 font-bold text-[#1A201C]">
                             <span>{name}</span>
-                            {isGolden && (
+                            {goldenStatus && goldenStatus !== "REJECTED" && (
                               <span
                                 title="Golden Ticket"
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-sm bg-amber-500/20 text-amber-900 text-[10px] font-bold"
+                                className={cn(
+                                  "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm text-[10px] font-bold",
+                                  goldenStatus === "ACCEPTED"
+                                    ? "bg-amber-500/20 text-amber-900"
+                                    : "bg-black/5 text-[#64746A]"
+                                )}
                               >
-                                <Sparkles className="w-2.5 h-2.5" /> Golden
+                                {goldenStatus === "ACCEPTED" ? (
+                                  <>
+                                    <Sparkles className="w-2.5 h-2.5" /> Golden
+                                  </>
+                                ) : (
+                                  `[Fase ${goldenStatus}]`
+                                )}
                               </span>
                             )}
                           </div>

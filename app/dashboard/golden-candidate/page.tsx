@@ -31,6 +31,8 @@ export default function GoldenCandidatePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [existingGoldenApp, setExistingGoldenApp] = useState<any>(null);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [hasActiveRegistration, setHasActiveRegistration] = useState(false);
+  const [activeBatch, setActiveBatch] = useState("");
 
   const {
     register,
@@ -48,16 +50,32 @@ export default function GoldenCandidatePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [profileRes, goldenRes] = await Promise.allSettled([
+        const [profileRes, goldenRes, statusRes, regRes] = await Promise.allSettled([
           api.getCandidateProfile(),
           api.getGoldenApplication(),
+          api.getOprecStatus(),
+          api.getRegistrationsHistory(),
         ]);
+
+        let currentBatchName = "";
+        if (statusRes.status === "fulfilled" && statusRes.value.data?.data) {
+          currentBatchName = statusRes.value.data.data.currentBatch;
+          setActiveBatch(currentBatchName);
+        }
 
         if (profileRes.status === "fulfilled" && profileRes.value.data?.data) {
           const p = profileRes.value.data.data;
           // Check if profile is complete
           if (p.fullName && p.nim && p.cvUrl) {
             setIsProfileComplete(true);
+          }
+        }
+
+        if (regRes.status === "fulfilled" && regRes.value.data?.data) {
+          const registrations = Array.isArray(regRes.value.data.data) ? regRes.value.data.data : [];
+          // Check if registered for current batch
+          if (currentBatchName && registrations.some((r: any) => r.batch?.name === currentBatchName)) {
+            setHasActiveRegistration(true);
           }
         }
 
@@ -166,6 +184,20 @@ export default function GoldenCandidatePage() {
         )}
       </div>
 
+      {(existingGoldenApp || hasActiveRegistration) && (
+        <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-500/20 flex flex-col gap-2 shadow-xs">
+          <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+            <AlertTriangle className="w-4 h-4" />
+            Pendaftaran Diblokir
+          </div>
+          <p className="text-xs text-amber-800/80">
+            {existingGoldenApp
+              ? "Anda sudah mengajukan form Golden Candidate. Silakan tunggu hasil evaluasi dari tim admin."
+              : `Anda sudah terdaftar di Oprec Reguler untuk batch ${activeBatch}. Anda tidak dapat mendaftar jalur Golden Ticket secara bersamaan.`}
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
           <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
@@ -189,7 +221,8 @@ export default function GoldenCandidatePage() {
               </label>
               <textarea
                 rows={5}
-                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 transition-colors"
+                disabled={!!existingGoldenApp || hasActiveRegistration}
+                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Ceritakan mengapa Anda tertarik dengan riset STAS-RG, target publikasi/proyek, dan dedikasi Anda..."
                 {...register("motivasi", {
                   required: "Esai motivasi wajib diisi",
@@ -212,7 +245,8 @@ export default function GoldenCandidatePage() {
               </label>
               <textarea
                 rows={4}
-                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 transition-colors"
+                disabled={!!existingGoldenApp || hasActiveRegistration}
+                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Tuliskan daftar karya inovatif, link repo GitHub, juara lomba, publikasi ilmiah, atau proyek teknologi..."
                 {...register("pencapaian", {
                   required: "Daftar pencapaian/prestasi wajib diisi",
@@ -235,7 +269,8 @@ export default function GoldenCandidatePage() {
               </label>
               <input
                 type="text"
-                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60"
+                disabled={!!existingGoldenApp || hasActiveRegistration}
+                className="w-full px-4 py-3 rounded-2xl bg-white/40 border border-black/10 focus:border-[#274432] focus:ring-1 focus:ring-[#274432] text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Contoh: Dr. Budi Santoso (Dosen Pembimbing - budi@univ.ac.id)"
                 {...register("rekomendasi")}
               />
@@ -245,16 +280,17 @@ export default function GoldenCandidatePage() {
 
         {/* Action Controls */}
         <div className="flex flex-col sm:flex-row sm:justify-end pt-2">
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full sm:w-auto justify-center bg-[#274432] hover:bg-[#1e3426] shadow-xl shadow-[#274432]/20"
-            isLoading={isSubmitting}
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Kirim Aplikasi Golden Candidate
-          </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full sm:w-auto justify-center bg-[#274432] hover:bg-[#1e3426] shadow-xl shadow-[#274432]/20 disabled:opacity-50"
+              isLoading={isSubmitting}
+              disabled={!!existingGoldenApp || hasActiveRegistration}
+              leftIcon={<Save className="w-4 h-4" />}
+            >
+              {existingGoldenApp ? "Aplikasi Terkirim" : "Kirim Aplikasi Golden Candidate"}
+            </Button>
         </div>
       </form>
     </div>

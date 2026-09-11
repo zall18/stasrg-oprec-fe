@@ -22,6 +22,12 @@ vi.mock("@/lib/api/client", () => ({
     getGoldenApplication: vi.fn().mockResolvedValue({
       data: { data: null },
     }),
+    getOprecStatus: vi.fn().mockResolvedValue({
+      data: { data: { isActive: true, currentBatch: "Batch 1" } }
+    }),
+    getRegistrationsHistory: vi.fn().mockResolvedValue({
+      data: { data: [] }
+    }),
     submitGoldenApplication: vi.fn(),
   },
 }));

@@ -13,7 +13,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
-import { Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,9 +60,16 @@ export default function LoginPage() {
         {/* Left: Form Area */}
         <div className="p-5 sm:p-8 md:p-12 flex flex-col justify-between bg-white/40 backdrop-blur-md">
           <div className="flex flex-col gap-6">
-            <Link href="/" className="inline-block">
-              <Logo size="sm" />
-            </Link>
+            <div className="flex items-center justify-between">
+              <Link href="/" className="inline-block">
+                <Logo size="sm" />
+              </Link>
+              <Link href="/">
+                <Button variant="ghost" size="sm" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+                  Kembali
+                </Button>
+              </Link>
+            </div>
 
             <div className="flex flex-col gap-1.5">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A201C]">

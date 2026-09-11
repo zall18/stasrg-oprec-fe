@@ -70,11 +70,11 @@ export default function AdminDashboardPage() {
     setIsFormInit(true);
   }
 
-  // Toggle Oprec Mutation
+  // Toggle Setting Mutation
   const toggleMutation = useMutation({
-    mutationFn: async (newStatus: boolean) => {
+    mutationFn: async (payload: { isActive?: boolean; isGoldenCandidateActive?: boolean }) => {
       return api.updateRecruitmentSetting({
-        isActive: newStatus,
+        ...payload,
         currentBatch: batchName || settingData?.currentBatch || "Batch 1",
       });
     },
@@ -381,33 +381,77 @@ export default function AdminDashboardPage() {
               placeholder="Oprec Batch 1 - 2026"
             />
 
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/40 border border-black/5">
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-[#1A201C]">
-                  Status Publik
-                </span>
-                <span className="text-[11px] text-[#64746A]">
-                  {settingData?.isActive
-                    ? "Dibuka untuk umum"
-                    : "Ditutup sementara"}
-                </span>
+            <div className="flex flex-col gap-3">
+              {/* Oprec Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/40 border border-black/5">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-[#1A201C]">
+                    Status Oprec Reguler
+                  </span>
+                  <span className="text-[11px] text-[#64746A]">
+                    {settingData?.isActive
+                      ? "Dibuka untuk umum"
+                      : "Ditutup sementara"}
+                  </span>
+                </div>
+
+                <Button
+                  variant={settingData?.isActive ? "primary" : "secondary"}
+                  size="sm"
+                  isLoading={toggleMutation.isPending}
+                  onClick={() =>
+                    toggleMutation.mutate({
+                      isActive: !settingData?.isActive,
+                      isGoldenCandidateActive: !settingData?.isActive ? false : settingData?.isGoldenCandidateActive,
+                    })
+                  }
+                  leftIcon={
+                    settingData?.isActive ? (
+                      <ToggleRight className="w-4 h-4" />
+                    ) : (
+                      <ToggleLeft className="w-4 h-4" />
+                    )
+                  }
+                >
+                  {settingData?.isActive ? "Tutup" : "Buka"}
+                </Button>
               </div>
 
-              <Button
-                variant={settingData?.isActive ? "primary" : "secondary"}
-                size="sm"
-                isLoading={toggleMutation.isPending}
-                onClick={() => toggleMutation.mutate(!settingData?.isActive)}
-                leftIcon={
-                  settingData?.isActive ? (
-                    <ToggleRight className="w-4 h-4" />
-                  ) : (
-                    <ToggleLeft className="w-4 h-4" />
-                  )
-                }
-              >
-                {settingData?.isActive ? "Tutup" : "Buka"}
-              </Button>
+              {/* Golden Candidate Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/40 border border-amber-500/20">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-amber-900">
+                    Status Golden Candidate
+                  </span>
+                  <span className="text-[11px] text-[#64746A]">
+                    {settingData?.isGoldenCandidateActive
+                      ? "Jalur khusus sedang dibuka"
+                      : "Ditutup sementara"}
+                  </span>
+                </div>
+
+                <Button
+                  variant={settingData?.isGoldenCandidateActive ? "primary" : "secondary"}
+                  size="sm"
+                  isLoading={toggleMutation.isPending}
+                  onClick={() =>
+                    toggleMutation.mutate({
+                      isGoldenCandidateActive: !settingData?.isGoldenCandidateActive,
+                      isActive: !settingData?.isGoldenCandidateActive ? false : settingData?.isActive,
+                    })
+                  }
+                  leftIcon={
+                    settingData?.isGoldenCandidateActive ? (
+                      <ToggleRight className="w-4 h-4" />
+                    ) : (
+                      <ToggleLeft className="w-4 h-4" />
+                    )
+                  }
+                  className={settingData?.isGoldenCandidateActive ? "bg-amber-600 hover:bg-amber-700 text-white" : ""}
+                >
+                  {settingData?.isGoldenCandidateActive ? "Tutup" : "Buka"}
+                </Button>
+              </div>
             </div>
           </div>
         </GlassCard>
