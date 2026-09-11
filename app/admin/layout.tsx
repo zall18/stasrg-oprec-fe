@@ -191,24 +191,25 @@ export default function AdminLayout({
       <aside
         data-testid="admin-sidebar"
         className={cn(
-          "fixed lg:static top-0 bottom-0 left-0 z-50 w-72 flex flex-col justify-between p-6 bg-white/70 backdrop-blur-2xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300 overflow-y-auto max-h-screen",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-72 flex flex-col shrink-0 bg-white/80 backdrop-blur-2xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Top: Logo & Brand */}
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <Link href="/admin/dashboard" onClick={() => setIsSidebarOpen(false)}>
-              <Logo size="md" subtitle="Admin PIC Seleksi" />
-            </Link>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+        {/* Top: Logo & Brand - Fixed Header */}
+        <div className="p-6 pb-4 shrink-0 flex items-center justify-between border-b border-black/5 lg:border-none">
+          <Link href="/admin/dashboard" onClick={() => setIsSidebarOpen(false)}>
+            <Logo size="md" subtitle="Admin PIC Seleksi" />
+          </Link>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
+        {/* Middle Scrollable Section: Nav Links & Oprec Widget */}
+        <div className="flex-1 overflow-y-auto px-6 py-2 min-h-0 space-y-4 scrollbar-thin">
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#274432]/70 ml-3 mb-1">
@@ -326,8 +327,8 @@ export default function AdminLayout({
           </div>
         </div>
 
-        {/* Bottom Area: Export, Admin Info, Logout */}
-        <div className="flex flex-col gap-3 pt-6 border-t border-black/5">
+        {/* Bottom Area: Export, Admin Info, Logout - Fixed at bottom */}
+        <div className="p-6 pt-4 shrink-0 border-t border-black/5 flex flex-col gap-3 mt-auto bg-white/40">
           <Button
             variant="outline"
             size="sm"
@@ -339,7 +340,7 @@ export default function AdminLayout({
             Ekspor Data (CSV)
           </Button>
 
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 border border-black/5">
+          <div className="flex items-center justify-between p-3 rounded-2xl bg-white/60 border border-black/5 shadow-2xs">
             <div className="flex flex-col truncate pr-2">
               <span className="text-xs font-semibold text-[#1A201C] truncate">
                 {user?.email}

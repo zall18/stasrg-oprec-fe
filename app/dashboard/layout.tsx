@@ -108,24 +108,26 @@ export default function CandidateLayout({
       <aside
         data-testid="candidate-sidebar"
         className={cn(
-          "fixed lg:static top-0 bottom-0 left-0 z-50 w-72 flex flex-col justify-between p-6 bg-white/70 backdrop-blur-2xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300 overflow-y-auto max-h-screen",
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-72 flex flex-col shrink-0 bg-white/80 backdrop-blur-2xl border-r border-white/60 shadow-xl lg:shadow-none transition-transform duration-300",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)}>
-              <Logo size="md" subtitle="Candidate Portal" />
-            </Link>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
-              aria-label="Tutup menu navigasi"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+        {/* Top Header Area - Fixed */}
+        <div className="p-6 pb-4 shrink-0 flex items-center justify-between border-b border-black/5 lg:border-none">
+          <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)}>
+            <Logo size="md" subtitle="Candidate Portal" />
+          </Link>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
+            aria-label="Tutup menu navigasi"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
+        {/* Scrollable Nav Area - Middle */}
+        <div className="flex-1 overflow-y-auto px-6 py-2 min-h-0 scrollbar-thin">
           <nav className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#274432]/70 ml-3 mb-1">
               Menu Seleksi
@@ -155,14 +157,14 @@ export default function CandidateLayout({
           </nav>
         </div>
 
-        {/* Bottom Area: Notification & User Info */}
-        <div className="flex flex-col gap-3 pt-6 border-t border-black/5">
-          <div className="flex items-center justify-between px-2 pb-2">
+        {/* Bottom Area: Notification & User Info - Fixed at Bottom */}
+        <div className="p-6 pt-4 shrink-0 border-t border-black/5 flex flex-col gap-3 mt-auto bg-white/40">
+          <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-[#1A201C]">Notifikasi</span>
             <NotificationBell />
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 border border-black/5">
+          <div className="flex items-center justify-between p-3 rounded-2xl bg-white/60 border border-black/5 shadow-2xs">
             <div className="flex flex-col truncate pr-2">
               <span className="text-xs font-semibold text-[#1A201C] truncate">
                 {user?.email}

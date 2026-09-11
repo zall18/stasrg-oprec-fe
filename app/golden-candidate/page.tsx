@@ -129,6 +129,9 @@ export default function GoldenCandidatePublicPage() {
             </Button>
           </Link>
         </div>
+        <span className="text-xs text-[#64746A] mt-3">
+          * Anda wajib login ke akun portal kandidat untuk dapat mengisi formulir.
+        </span>
       </section>
 
       {/* Key Benefits */}

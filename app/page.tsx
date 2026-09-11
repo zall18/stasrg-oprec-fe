@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { api } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 
 interface OprecStatus {
   isActive?: boolean;
@@ -63,9 +64,11 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
-  const isAnyActive = Boolean(
-    oprecStatus?.isOprecActive || oprecStatus?.isActive || oprecStatus?.isGoldenCandidateActive
+  const isGoldenActive = Boolean(oprecStatus?.isGoldenCandidateActive);
+  const isOprecActive = Boolean(
+    !isGoldenActive && (oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false)
   );
+  const isAnyActive = isGoldenActive || isOprecActive;
 
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-[#274432] selection:text-white">
@@ -76,23 +79,29 @@ export default function HomePage() {
             <Logo size="md" subtitle="Recruitment System" />
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Mutually Exclusive based on Active Mode */}
           <nav className="hidden md:flex items-center gap-2 sm:gap-3">
-            <Link href="/golden-candidate">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-amber-800 hover:text-amber-900 font-semibold"
-                leftIcon={<Sparkles className="w-3.5 h-3.5 text-amber-600" />}
-              >
-                Jalur Golden
-              </Button>
-            </Link>
-            <Link href="/rekrutmen">
-              <Button variant="ghost" size="sm" leftIcon={<FileCheck className="w-3.5 h-3.5" />}>
-                Panduan & Daftar
-              </Button>
-            </Link>
+            {isGoldenActive && (
+              <Link href="/golden-candidate">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-amber-800 hover:text-amber-900 font-semibold"
+                  leftIcon={<Sparkles className="w-3.5 h-3.5 text-amber-600" />}
+                >
+                  Jalur Golden
+                </Button>
+              </Link>
+            )}
+
+            {isOprecActive && (
+              <Link href="/rekrutmen">
+                <Button variant="ghost" size="sm" leftIcon={<FileCheck className="w-3.5 h-3.5" />}>
+                  Panduan & Info Oprec
+                </Button>
+              </Link>
+            )}
+
             <Link href="/auth/login">
               <Button variant="ghost" size="sm">
                 Masuk
@@ -122,18 +131,24 @@ export default function HomePage() {
         {/* Mobile Dropdown Menu Drawer */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-3 pt-3 border-t border-black/5 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
-            <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900">
-                <Sparkles className="w-4 h-4 text-amber-600" />
-                <span>Jalur Golden Candidate</span>
-              </div>
-            </Link>
-            <Link href="/rekrutmen" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl hover:bg-white/60 text-xs font-semibold text-[#1A201C] transition-colors">
-                <FileCheck className="w-4 h-4 text-[#274432]" />
-                <span>Panduan & Formulir Rekrutmen</span>
-              </div>
-            </Link>
+            {isGoldenActive && (
+              <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <span>Jalur Golden Candidate</span>
+                </div>
+              </Link>
+            )}
+
+            {isOprecActive && (
+              <Link href="/rekrutmen" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl hover:bg-white/60 text-xs font-semibold text-[#1A201C] transition-colors">
+                  <FileCheck className="w-4 h-4 text-[#274432]" />
+                  <span>Panduan & Info Oprec</span>
+                </div>
+              </Link>
+            )}
+
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-black/5">
               <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="outline" size="sm" className="w-full text-xs">
@@ -217,23 +232,36 @@ export default function HomePage() {
                 Login untuk Mendaftar
               </Button>
             </Link>
-            <Link href="/rekrutmen" className="w-full sm:w-auto">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto justify-center">
-                Pelajari Alur Rekrutmen
-              </Button>
-            </Link>
+            {isGoldenActive ? (
+              <Link href="/golden-candidate" className="w-full sm:w-auto">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto justify-center text-amber-900 border-amber-500/20 bg-amber-50/50 hover:bg-amber-100/60" leftIcon={<Sparkles className="w-4 h-4 text-amber-600" />}>
+                  Pelajari Jalur Golden
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/rekrutmen" className="w-full sm:w-auto">
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto justify-center">
+                  Pelajari Alur Rekrutmen
+                </Button>
+              </Link>
+            )}
           </div>
           <span className="text-xs text-[#64746A]">
-            * Anda wajib memiliki akun untuk dapat mengisi formulir pendaftaran.
+            * Anda wajib login terlebih dahulu ke akun kandidat untuk mengisi formulir pendaftaran.
           </span>
         </div>
 
         {/* 3 Pillars / Roles */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full pt-8 text-left">
           {/* Card 1: Riset */}
-          <GlassCard className="p-7 flex flex-col gap-4 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-2xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
-              <GraduationCap className="w-6 h-6" />
+          <GlassCard className={cn("p-7 flex flex-col gap-4 hover:shadow-md transition-shadow", isGoldenActive && "opacity-75")}>
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              {isOprecActive && (
+                <Badge variant="DITERIMA">Batch Aktif</Badge>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-bold text-[#1A201C]">
@@ -257,9 +285,14 @@ export default function HomePage() {
           </GlassCard>
 
           {/* Card 2: Magang */}
-          <GlassCard className="p-7 flex flex-col gap-4 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 rounded-2xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
-              <Briefcase className="w-6 h-6" />
+          <GlassCard className={cn("p-7 flex flex-col gap-4 hover:shadow-md transition-shadow", isGoldenActive && "opacity-75")}>
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              {isOprecActive && (
+                <Badge variant="DITERIMA">Batch Aktif</Badge>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-bold text-[#1A201C]">
@@ -285,7 +318,11 @@ export default function HomePage() {
           {/* Card 3: Golden Candidate */}
           <GlassCard
             variant="tinted"
-            className="p-7 flex flex-col gap-4 border-[#274432]/20 hover:shadow-md transition-shadow"
+            className={cn(
+              "p-7 flex flex-col gap-4 border-[#274432]/20 hover:shadow-md transition-shadow",
+              isGoldenActive && "ring-2 ring-amber-500/40 bg-amber-500/10 shadow-md",
+              isOprecActive && "opacity-75"
+            )}
           >
             <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-900">
               <Award className="w-6 h-6" />
@@ -295,7 +332,9 @@ export default function HomePage() {
                 <h3 className="text-lg font-bold text-[#1A201C]">
                   Golden Candidate
                 </h3>
-                <Badge variant="GOLDEN">Prioritas</Badge>
+                <Badge variant="GOLDEN">
+                  {isGoldenActive ? "Jalur Terbuka" : "Prioritas"}
+                </Badge>
               </div>
               <p className="text-xs text-[#64746A] leading-relaxed">
                 Jalur eksklusif bagi mahasiswa dengan portofolio terbukti dan

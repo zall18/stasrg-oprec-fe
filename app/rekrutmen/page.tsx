@@ -3,19 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { api } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/store/auth.store";
-import { useToast } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Dropzone } from "@/components/ui/dropzone";
 import {
   Sparkles,
   GraduationCap,
@@ -35,31 +28,9 @@ import {
   X,
 } from "lucide-react";
 
-// Schema for direct registration & apply
-const publicApplySchema = z.object({
-  fullName: z.string().trim().min(3, "Nama lengkap minimal 3 karakter"),
-  email: z.string().trim().email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter").optional().or(z.literal("")),
-  universitas: z.string().trim().min(2, "Universitas wajib diisi"),
-  nim: z.string().trim().min(4, "NIM wajib diisi"),
-  programStudi: z.string().trim().min(2, "Program studi wajib diisi"),
-  roleInterest: z.enum(["RISET", "MAGANG"]),
-  portfolioUrl: z.string().url("URL portofolio harus valid (https://...)"),
-  ipk: z.number().min(0).max(4.0).optional(),
-  semester: z.number().int().min(1).max(14).optional(),
-  pengalaman: z.string().optional(),
-});
-
-type PublicApplyInput = z.infer<typeof publicApplySchema>;
-
 export default function RekrutmenPage() {
   const router = useRouter();
-  const toast = useToast();
-  const { isAuthenticated, user, setAuth, loadFromStorage } = useAuthStore();
-
-  const [cvFile, setCvFile] = useState<File | null>(null);
-  const [transkripFile, setTranskripFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isAuthenticated, user, loadFromStorage } = useAuthStore();
   const [oprecStatus, setOprecStatus] = useState<any>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -69,98 +40,6 @@ export default function RekrutmenPage() {
       setOprecStatus(res.data?.data);
     }).catch(() => {});
   }, [loadFromStorage]);
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<PublicApplyInput>({
-    resolver: zodResolver(publicApplySchema),
-    defaultValues: {
-      roleInterest: "RISET",
-    },
-  });
-
-  const onSubmit = async (data: PublicApplyInput) => {
-    if (!cvFile) {
-      toast.error("Berkas CV dalam format PDF (maks 5MB) wajib diunggah!");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      let activeToken = localStorage.getItem("stasrg_token");
-
-      // If user is not authenticated, register account first
-      if (!isAuthenticated || !activeToken) {
-        if (!data.password || data.password.length < 6) {
-          throw new Error("Kata sandi minimal 6 karakter diperlukan untuk membuat akun.");
-        }
-
-        toast.info("Mendaftarkan akun kandidat baru...");
-        const regRes = await api.register({
-          email: data.email,
-          password: data.password,
-          role: "CANDIDATE",
-        });
-
-        const authUser = regRes.data?.data?.user;
-        activeToken = regRes.data?.data?.token;
-
-        if (!activeToken || !authUser) {
-          throw new Error("Gagal memperoleh sesi pendaftaran akun.");
-        }
-
-        setAuth(authUser, activeToken);
-      }
-
-      // Upload CV File
-      toast.info("Mengunggah berkas CV...");
-      const cvUploadRes = await api.uploadDocument(cvFile);
-      const cvUrl = cvUploadRes.data?.data?.url;
-
-      if (!cvUrl) throw new Error("Gagal mengunggah berkas CV");
-
-      // Upload Transkrip if provided
-      let transkripUrl: string | undefined = undefined;
-      if (transkripFile) {
-        toast.info("Mengunggah berkas transkrip...");
-        const trUploadRes = await api.uploadDocument(transkripFile);
-        transkripUrl = trUploadRes.data?.data?.url;
-      }
-
-      // Save profile
-      toast.info("Menyimpan data profil kandidat...");
-      await api.upsertCandidateProfile({
-        fullName: data.fullName,
-        universitas: data.universitas,
-        nim: data.nim,
-        programStudi: data.programStudi,
-        roleInterest: data.roleInterest,
-        portfolioUrl: data.portfolioUrl,
-        cvUrl,
-        transkripUrl,
-        ipk: data.ipk,
-        semester: data.semester,
-        pengalaman: data.pengalaman,
-      });
-
-      // Also apply for the active oprec batch if open
-      try {
-        await api.applyOprec(oprecStatus?.currentBatch);
-      } catch {
-        // If already applied or inactive, profile is still saved
-      }
-
-      toast.success("Pendaftaran berhasil! Anda akan dialihkan ke Dashboard.");
-      router.push("/dashboard");
-    } catch (err: any) {
-      toast.error(err.message || "Gagal mengirimkan formulir pendaftaran.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const isBatchActive = Boolean(
     oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false
@@ -216,12 +95,14 @@ export default function RekrutmenPage() {
                 ← Beranda Utama
               </div>
             </Link>
-            <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
-              <div className="px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900 flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Jalur Golden Candidate</span>
-              </div>
-            </Link>
+            {oprecStatus?.isGoldenCandidateActive && (
+              <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900 flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Jalur Golden Candidate</span>
+                </div>
+              </Link>
+            )}
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-black/5">
               {isAuthenticated ? (
                 <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="col-span-2">
@@ -254,7 +135,7 @@ export default function RekrutmenPage() {
           <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
           <span>Informasi Resmi Rekrutmen Laboratorium STAS-RG</span>
           <Badge variant={isBatchActive ? "DITERIMA" : "PENDING"}>
-            {isBatchActive ? "Batch Aktif Dibuka" : "Jalur Golden Terbuka"}
+            {isBatchActive ? "Batch Aktif Dibuka" : "Pendaftaran Ditutup"}
           </Badge>
         </div>
 
@@ -263,7 +144,7 @@ export default function RekrutmenPage() {
         </h1>
         <p className="text-xs sm:text-base text-[#64746A] max-w-2xl leading-relaxed">
           Pelajari peran riset, persyaratan berkas, alur tahapan seleksi, dan
-          kirimkan formulir pendaftaran Anda secara langsung di halaman ini.
+          tata cara pendaftaran melalui Portal Resmi Kandidat STAS-RG.
         </p>
       </section>
 
@@ -377,152 +258,81 @@ export default function RekrutmenPage() {
               3. Formulir Pendaftaran Terpadu
             </h2>
             <p className="text-xs text-[#64746A]">
-              Isikan data diri, data akademik, dan unggah berkas CV Anda di bawah ini.
+              Pendaftaran resmi dilakukan melalui Portal Kandidat setelah Anda masuk (login).
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-            {/* Bagian A: Identitas & Akun */}
-            <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
-              <h3 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-2">
-                Data Identitas & Akun
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Nama Lengkap *"
-                  placeholder="Nama Lengkap Anda"
-                  error={errors.fullName?.message}
-                  {...register("fullName")}
-                />
-                <Input
-                  label="Nomor Induk Mahasiswa (NIM) *"
-                  placeholder="102022530058"
-                  error={errors.nim?.message}
-                  {...register("nim")}
-                />
-                <Input
-                  label="Email Institusi / Pribadi *"
-                  type="email"
-                  placeholder="nama@email.com"
-                  error={errors.email?.message}
-                  {...register("email")}
-                />
-                {!isAuthenticated && (
-                  <Input
-                    label="Kata Sandi Akun (Baru) *"
-                    type="password"
-                    placeholder="Minimal 6 karakter"
-                    helperText="Akan digunakan untuk login ke portal kandidat nantinya."
-                    error={errors.password?.message}
-                    {...register("password")}
-                  />
-                )}
-              </div>
-            </GlassCard>
-
-            {/* Bagian B: Akademik & Peminatan */}
-            <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
-              <h3 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-2">
-                Data Akademik & Peminatan
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Universitas / Institut *"
-                  placeholder="Nama Universitas Anda"
-                  error={errors.universitas?.message}
-                  {...register("universitas")}
-                />
-                <Input
-                  label="Program Studi *"
-                  placeholder="Teknik Informatika, Sistem Informasi, Elektro, dll"
-                  error={errors.programStudi?.message}
-                  {...register("programStudi")}
-                />
-                <Select
-                  label="Pilihan Peran *"
-                  options={[
-                    { label: "Mahasiswa Riset (Publikasi & Algoritma)", value: "RISET" },
-                    { label: "Mahasiswa Magang (Pengembangan Produk & IoT)", value: "MAGANG" },
-                  ]}
-                  {...register("roleInterest")}
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input
-                    label="IPK Terakhir"
-                    type="number"
-                    step="0.01"
-                    placeholder="3.80"
-                    error={errors.ipk?.message}
-                    {...register("ipk", { valueAsNumber: true })}
-                  />
-                  <Input
-                    label="Semester"
-                    type="number"
-                    placeholder="5"
-                    error={errors.semester?.message}
-                    {...register("semester", { valueAsNumber: true })}
-                  />
-                </div>
-              </div>
-
-              <Input
-                label="Tautan Portofolio / GitHub / Karya *"
-                placeholder="https://github.com/username atau https://linkedin.com/..."
-                error={errors.portfolioUrl?.message}
-                {...register("portfolioUrl")}
-              />
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-[#274432]/80 ml-2">
-                  Pengalaman Singkat / Deskripsi Riset (Opsional)
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Ceritakan proyek teknologi, karya, atau minat riset yang pernah Anda geluti..."
-                  className="w-full bg-[#F5F7EC]/60 focus:bg-[#F5F7EC]/90 border border-black/5 focus:border-[#274432]/40 rounded-2xl p-4 text-sm text-[#1A201C] outline-none transition-all duration-200 backdrop-blur-sm placeholder:text-[#64746A]/70 shadow-inner"
-                  {...register("pengalaman")}
-                />
-              </div>
-            </GlassCard>
-
-            {/* Bagian C: Unggah Dokumen PDF */}
-            <GlassCard className="p-4 sm:p-6 md:p-8 flex flex-col gap-5 border-white/60">
-              <h3 className="text-sm font-bold text-[#1A201C] border-b border-black/5 pb-2">
-                Unggah Berkas Dokumen (PDF Maks 5MB)
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <Dropzone
-                  label="Kurikulum Vitae (CV) *"
-                  helperText="Format PDF, ukuran maksimal 5MB"
-                  onFileSelect={(file) => setCvFile(file)}
-                />
-                <Dropzone
-                  label="Transkrip Nilai (Opsional)"
-                  helperText="Format PDF, ukuran maksimal 5MB"
-                  onFileSelect={(file) => setTranskripFile(file)}
-                />
-              </div>
-            </GlassCard>
-
-            {/* Tombol Kirim */}
-            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-2 w-full">
-              <Link href="/" className="w-full sm:w-auto">
-                <Button variant="secondary" type="button" className="w-full sm:w-auto justify-center">
-                  Batal
-                </Button>
-              </Link>
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full sm:w-auto justify-center"
-                isLoading={isSubmitting}
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-              >
-                Kirimkan Pendaftaran Sekarang
-              </Button>
+          <GlassCard className="p-6 sm:p-10 flex flex-col items-center text-center gap-6 border-white/60 bg-white/70 shadow-md">
+            <div className="w-16 h-16 rounded-3xl bg-[#274432]/10 flex items-center justify-center text-[#274432] shadow-xs">
+              <Lock className="w-8 h-8" />
             </div>
-          </form>
+
+            <div className="flex flex-col gap-2 max-w-xl">
+              <h3 className="text-lg sm:text-xl font-extrabold text-[#1A201C]">
+                Pendaftaran Wajib Melalui Portal Kandidat
+              </h3>
+              <p className="text-xs sm:text-sm text-[#64746A] leading-relaxed">
+                Untuk menjaga keamanan akun, keabsahan berkas (CV & Transkrip), serta memantau progres seleksi secara transparan, seluruh pengisian data dan pengunggahan berkas dilakukan di dalam <strong>Portal Kandidat</strong>.
+              </p>
+            </div>
+
+            {/* 3 Simple Steps */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full text-left py-2">
+              <div className="p-4 rounded-2xl bg-white/50 border border-black/5 flex flex-col gap-1.5">
+                <span className="w-6 h-6 rounded-full bg-[#274432] text-white text-xs font-bold flex items-center justify-center">1</span>
+                <span className="text-xs font-bold text-[#1A201C]">Masuk / Buat Akun</span>
+                <p className="text-[11px] text-[#64746A]">Login ke akun Anda atau registrasi akun baru jika belum terdaftar.</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/50 border border-black/5 flex flex-col gap-1.5">
+                <span className="w-6 h-6 rounded-full bg-[#274432] text-white text-xs font-bold flex items-center justify-center">2</span>
+                <span className="text-xs font-bold text-[#1A201C]">Lengkapi Profil</span>
+                <p className="text-[11px] text-[#64746A]">Isi data diri, akademik, dan unggah berkas CV PDF di menu Profil Saya.</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/50 border border-black/5 flex flex-col gap-1.5">
+                <span className="w-6 h-6 rounded-full bg-[#274432] text-white text-xs font-bold flex items-center justify-center">3</span>
+                <span className="text-xs font-bold text-[#1A201C]">Kirimkan Pendaftaran</span>
+                <p className="text-[11px] text-[#64746A]">Ajukan pendaftaran pada batch aktif dan pantau jadwal wawancara Anda.</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
+              {isAuthenticated ? (
+                <Link href="/dashboard/oprec" className="w-full sm:w-auto">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full sm:w-auto justify-center px-8"
+                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                  >
+                    Buka Pendaftaran di Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="w-full sm:w-auto">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      className="w-full sm:w-auto justify-center px-8"
+                      rightIcon={<ArrowRight className="w-4 h-4" />}
+                    >
+                      Login untuk Mendaftar
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" className="w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full sm:w-auto justify-center px-6"
+                    >
+                      Belum Punya Akun? Registrasi
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </GlassCard>
         </div>
 
         {/* Section 4: Alur Timeline & FAQ */}
