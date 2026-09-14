@@ -22,6 +22,7 @@ import {
   Square,
   CheckCircle2,
   Filter,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,21 @@ export default function AdminCandidatesPage() {
   const [bulkStatus, setBulkStatus] = useState("SELEKSI_BERKAS");
   const [page, setPage] = useState(1);
   const limit = 10;
+  const [previewEssay, setPreviewEssay] = useState<{
+    name: string;
+    motivasi: string;
+    prodi?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreviewEssay(null);
+    };
+    if (previewEssay) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewEssay]);
 
   // Search debounce to protect backend rate limits
   useEffect(() => {
@@ -482,9 +498,29 @@ export default function AdminCandidatesPage() {
                         </p>
                       </td>
                       <td className="py-4 px-4 max-w-[220px]">
-                        <p className="line-clamp-2 text-[#64746A] leading-tight" title={motivasi}>
-                          {motivasi}
-                        </p>
+                        {motivasi && motivasi !== "-" ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewEssay({
+                                name,
+                                motivasi,
+                                prodi: `${univ} • ${prodi}`,
+                              })
+                            }
+                            className="text-left group cursor-pointer w-full"
+                            title="Klik untuk membaca esai motivasi lengkap"
+                          >
+                            <p className="line-clamp-2 text-[#64746A] group-hover:text-amber-900 leading-tight">
+                              {motivasi}
+                            </p>
+                            <span className="text-[10px] text-amber-700 font-semibold opacity-70 group-hover:opacity-100 group-hover:underline flex items-center gap-0.5 pt-0.5">
+                              <Eye className="w-2.5 h-2.5" /> Buka Popup
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="text-[#64746A]">-</span>
+                        )}
                       </td>
                       <td className="py-4 px-4">
                         <span
@@ -678,6 +714,63 @@ export default function AdminCandidatesPage() {
           </div>
         )}
       </GlassCard>
+
+      {/* MODAL POPUP PREVIEW ESAI DARI TABEL */}
+      {previewEssay && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setPreviewEssay(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-black/10 flex flex-col gap-5 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-black/5 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 flex items-center justify-center text-amber-700 shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#1A201C]">
+                    Esai Motivasi Riset Kandidat
+                  </h3>
+                  <span className="text-xs text-[#64746A]">
+                    {previewEssay.name} {previewEssay.prodi ? `• ${previewEssay.prodi}` : ""}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewEssay(null)}
+                className="p-2 rounded-xl text-[#64746A] hover:text-[#1A201C] hover:bg-black/5 transition-colors cursor-pointer"
+                aria-label="Tutup popup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#F5F7EC]/80 border border-[#274432]/10 text-xs sm:text-sm text-[#1A201C] leading-relaxed whitespace-pre-wrap font-sans">
+                {previewEssay.motivasi}
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64746A] px-1">
+                <span>Panjang: {previewEssay.motivasi.length} karakter</span>
+                <span className="font-semibold text-amber-800">Jalur Golden Candidate</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPreviewEssay(null)}
+              >
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

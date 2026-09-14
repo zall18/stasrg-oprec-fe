@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge, BadgeVariant } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   GraduationCap,
@@ -22,6 +23,10 @@ import {
   FolderPlus,
   Sparkles,
   Calendar,
+  X,
+  Eye,
+  Award,
+  Quote,
 } from "lucide-react";
 
 export default function CandidateDetailPage() {
@@ -56,6 +61,17 @@ export default function CandidateDetailPage() {
   const [assignedProject, setAssignedProject] = useState<string>("");
   const [selectedGoldenStatus, setSelectedGoldenStatus] = useState<string>("");
   const [isInit, setIsInit] = useState(false);
+  const [isMotivationModalOpen, setIsMotivationModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMotivationModalOpen(false);
+    };
+    if (isMotivationModalOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMotivationModalOpen]);
 
   if (rawData && !isInit) {
     setSelectedStatus(currentStatus);
@@ -326,9 +342,101 @@ export default function CandidateDetailPage() {
               )}
             </div>
           </GlassCard>
+
+          {/* Section 3 (Golden Candidate): Aplikasi & Portofolio Prestasi Khusus */}
+          {goldenApp && (
+            <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-amber-200/60 bg-amber-500/[0.03]">
+              <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#1A201C]">
+                      Aplikasi & Prestasi Jalur Golden
+                    </h2>
+                    <span className="text-[11px] text-[#64746A]">
+                      Portofolio pencapaian & esai motivasi jalur prestasi
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className={cn(
+                    "px-2.5 py-1 rounded-full text-xs font-bold border",
+                    currentGoldenStatus === "ACCEPTED"
+                      ? "bg-emerald-500/20 text-emerald-900 border-emerald-500/30"
+                      : currentGoldenStatus === "REJECTED"
+                      ? "bg-rose-500/20 text-rose-900 border-rose-500/30"
+                      : "bg-amber-500/20 text-amber-900 border-amber-500/30"
+                  )}
+                >
+                  Tahap: {currentGoldenStatus}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+                {/* Daftar Prestasi */}
+                <div className="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-white/60 border border-black/5">
+                  <span className="font-bold text-[#1A201C] flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5 text-amber-600" />
+                    Prestasi & Pencapaian Unggulan
+                  </span>
+                  <p className="text-[#1A201C] leading-relaxed whitespace-pre-wrap">
+                    {goldenApp.pencapaian || "Tidak ada daftar prestasi"}
+                  </p>
+                </div>
+
+                {/* Surat Rekomendasi */}
+                <div className="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-white/60 border border-black/5">
+                  <span className="font-bold text-[#1A201C] flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-amber-600" />
+                    Kontak / Surat Rekomendasi
+                  </span>
+                  <p className="text-[#64746A] leading-relaxed whitespace-pre-wrap">
+                    {goldenApp.rekomendasi || "Tidak dilampirkan"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Esai Motivasi Trigger Card (Click to open popup) */}
+              {goldenApp.motivasi && (
+                <div
+                  onClick={() => setIsMotivationModalOpen(true)}
+                  className="group relative p-4 rounded-2xl bg-gradient-to-br from-amber-50/90 to-amber-100/40 border border-amber-300/70 hover:border-amber-500 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col gap-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-950">
+                      <Quote className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Esai Motivasi Riset Laboratorium</span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-amber-900 bg-amber-500/25 px-2.5 py-0.5 rounded-full flex items-center gap-1 group-hover:bg-amber-500/40 transition-colors">
+                      <Eye className="w-3 h-3" /> Klik untuk Buka Popup
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-[#1A201C]/80 italic line-clamp-2 leading-relaxed">
+                    "{goldenApp.motivasi}"
+                  </p>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-amber-300/30 text-[11px] text-[#64746A]">
+                    <span>{goldenApp.motivasi.length} karakter</span>
+                    <span className="text-amber-800 font-bold group-hover:underline flex items-center gap-1">
+                      Baca Esai Lengkap &rarr;
+                    </span>
+                  </div>
+                </div>
+              )}
+            </GlassCard>
+          )}
+
+          {/* Section 4: Catatan Internal Admin (Dipindahkan ke kolom utama agar luas & mengisi ruang kosong) */}
+          <CandidateNotesSection
+            candidateId={candidateId}
+            registrationId={registrationId}
+          />
         </div>
 
-        {/* Right Column: Admin Actions */}
+        {/* Right Column: Admin Actions & Decisions */}
         <div className="flex flex-col gap-6">
           <GlassCard className="p-4 sm:p-6 flex flex-col gap-5 border-white/60">
             <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
@@ -379,6 +487,64 @@ export default function CandidateDetailPage() {
             </Button>
           </GlassCard>
 
+          {/* Golden Candidate Decision Card */}
+          {goldenApp && (
+            <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/20">
+              <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#1A201C]">
+                    Keputusan Golden Ticket
+                  </h3>
+                </div>
+                <Badge variant={currentGoldenStatus === "ACCEPTED" ? "GOLDEN" : "PENDING"}>
+                  {currentGoldenStatus}
+                </Badge>
+              </div>
+
+              {goldenApp.motivasi && (
+                <button
+                  type="button"
+                  onClick={() => setIsMotivationModalOpen(true)}
+                  className="w-full text-left p-2.5 rounded-xl bg-white/70 border border-amber-500/20 hover:border-amber-500/50 transition-colors flex items-center justify-between text-xs cursor-pointer group"
+                >
+                  <span className="text-amber-950 font-medium flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-amber-700" />
+                    Lihat Esai Motivasi
+                  </span>
+                  <span className="text-amber-800 text-[11px] font-semibold flex items-center gap-1 group-hover:underline">
+                    <Eye className="w-3 h-3" /> Popup
+                  </span>
+                </button>
+              )}
+
+              <Select
+                label="Keputusan Golden Candidate"
+                value={selectedGoldenStatus}
+                onChange={(e) => setSelectedGoldenStatus(e.target.value)}
+                options={[
+                  { label: "Menunggu Review (Pending)", value: "PENDING" },
+                  { label: "Tahap Seleksi Berkas (Administrative)", value: "ADMINISTRATIVE" },
+                  { label: "Tahap Wawancara Khusus (Interview)", value: "INTERVIEW" },
+                  { label: "Terima Golden Ticket (Accepted)", value: "ACCEPTED" },
+                  { label: "Tolak (Dialihkan ke Reguler)", value: "REJECTED" },
+                ]}
+              />
+
+              <Button
+                variant="primary"
+                className="bg-amber-600 hover:bg-amber-700 text-white border-amber-700/50"
+                isLoading={updateGoldenStatusMutation.isPending}
+                onClick={() => updateGoldenStatusMutation.mutate()}
+                leftIcon={<Sparkles className="w-4 h-4" />}
+              >
+                Simpan Keputusan Golden
+              </Button>
+            </GlassCard>
+          )}
+
           {/* Quick Interview Link */}
           <GlassCard className="p-4 sm:p-6 flex flex-col gap-3 border-white/60">
             <h3 className="text-sm font-bold text-[#1A201C] flex items-center gap-2">
@@ -394,74 +560,70 @@ export default function CandidateDetailPage() {
               </Button>
             </Link>
           </GlassCard>
-
-          {/* Golden Candidate Evaluation Card */}
-          {goldenApp && (
-            <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/10">
-              <div className="flex items-center gap-2.5 border-b border-amber-500/20 pb-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-700">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <h2 className="text-sm font-bold text-[#1A201C]">
-                  Evaluasi Golden Ticket
-                </h2>
-              </div>
-              
-              <div className="flex flex-col gap-3 text-xs">
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#64746A]">Esai Motivasi:</span>
-                  <p className="bg-white/40 p-2.5 rounded-xl border border-black/5 italic text-[#1A201C]">
-                    "{goldenApp.motivasi}"
-                  </p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#64746A]">Daftar Prestasi:</span>
-                  <p className="bg-white/40 p-2.5 rounded-xl border border-black/5 text-[#1A201C]">
-                    {goldenApp.pencapaian}
-                  </p>
-                </div>
-                {goldenApp.rekomendasi && (
-                  <div className="flex flex-col gap-1">
-                    <span className="font-semibold text-[#64746A]">Rekomendasi:</span>
-                    <p className="bg-white/40 p-2.5 rounded-xl border border-black/5 text-[#1A201C]">
-                      {goldenApp.rekomendasi}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-3 border-t border-amber-500/20 flex flex-col gap-3">
-                <Select
-                  label="Keputusan Golden Candidate"
-                  value={selectedGoldenStatus}
-                  onChange={(e) => setSelectedGoldenStatus(e.target.value)}
-                  options={[
-                    { label: "Menunggu Review (Pending)", value: "PENDING" },
-                    { label: "Sedang Dievaluasi (Review)", value: "REVIEW" },
-                    { label: "Terima Golden Ticket", value: "ACCEPTED" },
-                    { label: "Tolak (Dialihkan ke Reguler)", value: "REJECTED" },
-                  ]}
-                />
-                <Button
-                  variant="primary"
-                  className="bg-amber-600 hover:bg-amber-700 text-white border-amber-700/50"
-                  isLoading={updateGoldenStatusMutation.isPending}
-                  onClick={() => updateGoldenStatusMutation.mutate()}
-                  leftIcon={<Sparkles className="w-4 h-4" />}
-                >
-                  Simpan Keputusan Golden
-                </Button>
-              </div>
-            </GlassCard>
-          )}
-
-          {/* Internal Notes Card */}
-          <CandidateNotesSection
-            candidateId={candidateId}
-            registrationId={registrationId}
-          />
         </div>
       </div>
+
+      {/* MODAL POPUP ESAI MOTIVASI */}
+      {isMotivationModalOpen && goldenApp?.motivasi && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setIsMotivationModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-black/10 flex flex-col gap-5 overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-black/5 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 flex items-center justify-center text-amber-700 shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#1A201C]">
+                    Esai Motivasi Riset Kandidat
+                  </h3>
+                  <span className="text-xs text-[#64746A]">
+                    {profile?.fullName || candidate?.user?.email || "Kandidat"} • {profile?.programStudi || profile?.universitas || "STAS-RG"}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMotivationModalOpen(false)}
+                className="p-2 rounded-xl text-[#64746A] hover:text-[#1A201C] hover:bg-black/5 transition-colors cursor-pointer"
+                aria-label="Tutup popup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#F5F7EC]/80 border border-[#274432]/10 text-xs sm:text-sm text-[#1A201C] leading-relaxed whitespace-pre-wrap font-sans">
+                {goldenApp.motivasi}
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64746A] px-1">
+                <span>
+                  Panjang: {goldenApp.motivasi.length} karakter (~{goldenApp.motivasi.split(/\s+/).filter(Boolean).length} kata)
+                </span>
+                <span className="font-semibold text-amber-800">Jalur Golden Candidate</span>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsMotivationModalOpen(false)}
+              >
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

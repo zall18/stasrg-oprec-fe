@@ -157,13 +157,8 @@ export default function CandidateLayout({
           </nav>
         </div>
 
-        {/* Bottom Area: Notification & User Info - Fixed at Bottom */}
+        {/* Bottom Area: User Info & Logout - Fixed at Bottom */}
         <div className="p-6 pt-4 shrink-0 border-t border-black/5 flex flex-col gap-3 mt-auto bg-white/40">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-[#1A201C]">Notifikasi</span>
-            <NotificationBell />
-          </div>
-
           <div className="flex items-center justify-between p-3 rounded-2xl bg-white/60 border border-black/5 shadow-2xs">
             <div className="flex flex-col truncate pr-2">
               <span className="text-xs font-semibold text-[#1A201C] truncate">
@@ -186,20 +181,31 @@ export default function CandidateLayout({
 
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header Bar */}
-        <div className="lg:hidden flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-white/40 backdrop-blur-md border-b border-white/50 sticky top-0 z-30">
-          <Logo size="sm" subtitle="Candidate Panel" />
-          <div className="flex items-center gap-2 sm:gap-3">
-            <NotificationBell />
+        {/* Top Header Bar (Desktop & Mobile) */}
+        <header className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-3.5 bg-white/70 backdrop-blur-md border-b border-black/5 sticky top-0 z-30 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="lg:hidden">
+              <Logo size="sm" subtitle="Candidate Portal" />
+            </div>
+            <div className="hidden lg:flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="text-xs font-semibold text-[#1A201C]">
+                Portal Rekrutmen & Seleksi Laboratorium STAS-RG
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <NotificationBell align="right" direction="down" />
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 rounded-xl bg-white/60 text-[#1A201C] border border-black/5"
+              className="lg:hidden p-2 rounded-xl bg-white/70 text-[#1A201C] border border-black/5 cursor-pointer"
               aria-label="Buka menu navigasi"
             >
               <Menu className="w-5 h-5" />
             </button>
           </div>
-        </div>
+        </header>
 
         {/* Page Children */}
         <main className="flex-1 p-3.5 sm:p-8 max-w-6xl w-full mx-auto">

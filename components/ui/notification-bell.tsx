@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, Clock, Inbox } from "lucide-react";
+import { Bell, Check, Clock, Inbox, X } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,17 @@ interface NotificationItem {
   createdAt: string;
 }
 
-export function NotificationBell() {
+export interface NotificationBellProps {
+  align?: "left" | "right";
+  direction?: "down" | "up";
+  className?: string;
+}
+
+export function NotificationBell({
+  align = "right",
+  direction = "down",
+  className,
+}: NotificationBellProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -75,13 +85,31 @@ export function NotificationBell() {
     },
   });
 
+  // Close on Escape key
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+    }
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
+
   const unreadCount = Number(unreadData || 0);
 
   return (
-    <div className="relative" ref={dropdownRef} data-testid="notification-bell">
+    <div
+      className={cn("relative inline-flex items-center justify-center", className)}
+      ref={dropdownRef}
+      data-testid="notification-bell"
+    >
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full text-[#64746A] hover:text-[#1A201C] hover:bg-white/60 transition-colors focus:outline-hidden"
+        className="relative p-2 rounded-full text-[#64746A] hover:text-[#1A201C] hover:bg-white/60 transition-colors focus:outline-hidden cursor-pointer"
         aria-label="Buka notifikasi"
       >
         <Bell className="w-5 h-5" />
@@ -97,17 +125,38 @@ export function NotificationBell() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2.5rem)] max-w-sm sm:w-96 rounded-3xl bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            "rounded-3xl bg-white/95 backdrop-blur-xl border border-white/80 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150",
+            // Mobile: fixed below header so it never overflows off-screen
+            "max-sm:fixed max-sm:top-16 max-sm:inset-x-3 max-sm:w-auto max-sm:max-w-none",
+            // Desktop: positioned relative to the bell according to align & direction
+            "sm:absolute sm:w-96 sm:max-w-sm",
+            direction === "up" ? "sm:bottom-full sm:mb-2" : "sm:top-full sm:mt-2",
+            align === "left" ? "sm:left-0 origin-top-left" : "sm:right-0 origin-top-right"
+          )}
+        >
           <div className="p-4 border-b border-black/5 flex items-center justify-between">
-            <span className="text-xs font-bold text-[#1A201C] flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Bell className="w-3.5 h-3.5 text-[#274432]" />
-              Notifikasi Pendaftaran
-            </span>
-            {unreadCount > 0 && (
-              <span className="text-[11px] font-medium text-emerald-800 bg-emerald-100/60 px-2 py-0.5 rounded-full">
-                {unreadCount} belum dibaca
+              <span className="text-xs font-bold text-[#1A201C]">
+                Notifikasi Pendaftaran
               </span>
-            )}
+              {unreadCount > 0 && (
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                  {unreadCount} belum dibaca
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="p-1.5 rounded-xl text-[#64746A] hover:text-[#1A201C] hover:bg-black/5 transition-colors cursor-pointer"
+              aria-label="Tutup notifikasi"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           <div className="max-h-80 overflow-y-auto divide-y divide-black/5">
