@@ -81,29 +81,29 @@ export default function AdminLayout({
     }
   }, [settingData]);
 
-  // Toggle Oprec Active Status mutation
+  // Toggle Oprec / Golden Active Status mutation
   const toggleMutation = useMutation({
     mutationFn: async ({
       isActive,
+      isGoldenCandidateActive,
       currentBatch,
     }: {
-      isActive: boolean;
+      isActive?: boolean;
+      isGoldenCandidateActive?: boolean;
       currentBatch?: string;
     }) => {
       return api.updateRecruitmentSetting({
-        isActive,
+        isActive: isActive !== undefined ? isActive : false,
+        isGoldenCandidateActive:
+          isGoldenCandidateActive !== undefined ? isGoldenCandidateActive : false,
         currentBatch: currentBatch || settingData?.currentBatch || "Batch 1",
       });
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["oprecSettings"] });
       queryClient.invalidateQueries({ queryKey: ["oprecStatus"] });
       queryClient.invalidateQueries({ queryKey: ["adminStats"] });
-      toast.success(
-        variables.isActive
-          ? "Pendaftaran Oprec berhasil DIAKTIFKAN!"
-          : "Pendaftaran Oprec berhasil DITUTUP!"
-      );
+      toast.success("Pengaturan pendaftaran berhasil diperbarui!");
     },
     onError: (err: any) => {
       toast.error(err.message || "Gagal mengubah status pendaftaran");
@@ -111,6 +111,7 @@ export default function AdminLayout({
   });
 
   const isOprecActive = Boolean(settingData?.isActive);
+  const isGoldenActive = Boolean(settingData?.isGoldenCandidateActive);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -242,8 +243,8 @@ export default function AdminLayout({
             })}
           </nav>
 
-          {/* SIDEBAR WIDGET: Kendali & Atur Open Recruitment */}
-          <div className="p-4 rounded-3xl bg-[#F5F7EC]/80 border border-[#274432]/15 shadow-xs flex flex-col gap-3">
+          {/* SIDEBAR WIDGET: Kendali & Atur Oprec & Golden Candidate */}
+          <div className="p-4 rounded-3xl bg-[#F5F7EC]/90 border border-[#274432]/15 shadow-xs flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Settings className="w-4 h-4 text-[#274432]" />
@@ -251,40 +252,97 @@ export default function AdminLayout({
                   Atur Pendaftaran
                 </span>
               </div>
-              <Badge variant={isOprecActive ? "DITERIMA" : "PENDING"}>
-                {isOprecActive ? "Buka" : "Tutup"}
-              </Badge>
+              <span
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold",
+                  isOprecActive
+                    ? "bg-emerald-600 text-white"
+                    : isGoldenActive
+                    ? "bg-amber-600 text-white"
+                    : "bg-black/10 text-[#64746A]"
+                )}
+              >
+                {isOprecActive
+                  ? "Oprec Buka"
+                  : isGoldenActive
+                  ? "Golden Buka"
+                  : "Ditutup"}
+              </span>
             </div>
 
-            <div className="flex flex-col gap-1 text-[11px]">
-              <span className="text-[#64746A]">Batch Aktif:</span>
+            <div className="flex flex-col gap-0.5 text-[11px]">
+              <span className="text-[#64746A]">Batch Utama:</span>
               <span className="font-semibold text-[#1A201C] truncate">
                 {settingData?.currentBatch || "Batch 1 - 2026"}
               </span>
             </div>
 
-            {/* Quick Toggle Button */}
-            <Button
-              variant={isOprecActive ? "primary" : "secondary"}
-              size="sm"
-              className="w-full text-xs py-2"
-              isLoading={toggleMutation.isPending}
-              onClick={() =>
-                toggleMutation.mutate({
-                  isActive: !isOprecActive,
-                  currentBatch: batchNameInput || settingData?.currentBatch,
-                })
-              }
-              leftIcon={
-                isOprecActive ? (
-                  <ToggleRight className="w-4 h-4" />
-                ) : (
-                  <ToggleLeft className="w-4 h-4" />
-                )
-              }
-            >
-              {isOprecActive ? "Tutup Pendaftaran" : "Buka Pendaftaran"}
-            </Button>
+            {/* Quick Toggle Controls */}
+            <div className="flex flex-col gap-2 pt-1 border-t border-black/5">
+              {/* Oprec Toggle */}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#1A201C] font-semibold text-[11px]">
+                  Oprec Reguler
+                </span>
+                <Button
+                  variant={isOprecActive ? "primary" : "secondary"}
+                  size="sm"
+                  className="text-[11px] h-7 px-2.5"
+                  isLoading={toggleMutation.isPending}
+                  onClick={() =>
+                    toggleMutation.mutate({
+                      isActive: !isOprecActive,
+                      isGoldenCandidateActive: !isOprecActive ? false : isGoldenActive,
+                      currentBatch: batchNameInput || settingData?.currentBatch,
+                    })
+                  }
+                  leftIcon={
+                    isOprecActive ? (
+                      <ToggleRight className="w-3.5 h-3.5" />
+                    ) : (
+                      <ToggleLeft className="w-3.5 h-3.5" />
+                    )
+                  }
+                >
+                  {isOprecActive ? "Aktif" : "Buka"}
+                </Button>
+              </div>
+
+              {/* Golden Candidate Toggle */}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-amber-900 font-semibold text-[11px] flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-600" />
+                  Golden Ticket
+                </span>
+                <Button
+                  variant={isGoldenActive ? "primary" : "secondary"}
+                  size="sm"
+                  className={cn(
+                    "text-[11px] h-7 px-2.5",
+                    isGoldenActive
+                      ? "bg-amber-600 hover:bg-amber-700 text-white"
+                      : "text-amber-900 border-amber-500/30"
+                  )}
+                  isLoading={toggleMutation.isPending}
+                  onClick={() =>
+                    toggleMutation.mutate({
+                      isGoldenCandidateActive: !isGoldenActive,
+                      isActive: !isGoldenActive ? false : isOprecActive,
+                      currentBatch: batchNameInput || settingData?.currentBatch,
+                    })
+                  }
+                  leftIcon={
+                    isGoldenActive ? (
+                      <ToggleRight className="w-3.5 h-3.5" />
+                    ) : (
+                      <ToggleLeft className="w-3.5 h-3.5" />
+                    )
+                  }
+                >
+                  {isGoldenActive ? "Aktif" : "Buka"}
+                </Button>
+              </div>
+            </div>
 
             {/* Collapsible Edit Batch Details */}
             <button

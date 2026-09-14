@@ -21,7 +21,9 @@ import {
   Sparkles,
   ToggleRight,
   X,
+  Check,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BatchItem {
   id: string;
@@ -33,6 +35,9 @@ interface BatchItem {
   isActive?: boolean;
   isArchived?: boolean;
   totalApplicants?: number;
+  filledQuota?: number;
+  currentCandidateCount?: number;
+  acceptedApplicants?: number;
 }
 
 export default function AdminBatchesPage() {
@@ -212,105 +217,156 @@ export default function AdminBatchesPage() {
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {batches.map((b) => (
-            <GlassCard
-              key={b.id}
-              className="p-4 sm:p-6 flex flex-col justify-between gap-4 sm:gap-5 border-white/60 hover:shadow-lg transition-all"
-            >
-              <div className="flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-base font-bold text-[#1A201C] line-clamp-1">
-                    {b.name}
-                  </h3>
-                  <Badge variant={b.isActive ? "DITERIMA" : "DEFAULT"}>
-                    {b.isActive ? "Aktif" : "Non-Aktif"}
-                  </Badge>
-                </div>
+          {batches.map((b) => {
+            const filled = b.filledQuota ?? b.currentCandidateCount ?? b.acceptedApplicants ?? 0;
+            const quota = b.quota || 30;
+            const pct = Math.min(100, Math.round((filled / quota) * 100));
 
-                <p className="text-xs text-[#64746A] line-clamp-2 leading-relaxed">
-                  {b.description || "Tidak ada deskripsi batch."}
-                </p>
-
-                <div className="grid grid-cols-2 gap-2 pt-2 text-xs border-t border-black/5">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[#64746A] text-[10px] uppercase font-bold">
-                      Total Pelamar
-                    </span>
-                    <span className="font-bold text-[#1A201C] flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-[#274432]" />
-                      {b.totalApplicants || 0} orang
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[#64746A] text-[10px] uppercase font-bold">
-                      Target Kuota
-                    </span>
-                    <span className="font-bold text-[#1A201C]">
-                      {b.quota || 30} kandidat
-                    </span>
-                  </div>
-                </div>
-
-                {(b.startDate || b.endDate) && (
-                  <div className="text-[11px] text-[#64746A] flex items-center gap-1.5 pt-1">
-                    <Calendar className="w-3.5 h-3.5 text-[#274432]" />
-                    <span>
-                      {b.startDate ? new Date(b.startDate).toLocaleDateString("id-ID") : "-"} s/d{" "}
-                      {b.endDate ? new Date(b.endDate).toLocaleDateString("id-ID") : "-"}
-                    </span>
-                  </div>
+            return (
+              <GlassCard
+                key={b.id}
+                className={cn(
+                  "p-4 sm:p-6 flex flex-col justify-between gap-4 sm:gap-5 transition-all",
+                  b.isActive
+                    ? "border-2 border-emerald-600 bg-emerald-500/[0.04] ring-2 ring-emerald-500/20 shadow-md"
+                    : "border-black/10 bg-white/40 opacity-90 hover:opacity-100 hover:shadow-md"
                 )}
-              </div>
+              >
+                <div className="flex flex-col gap-3.5">
+                  {/* Status Banner / Header */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <h3 className="text-base font-extrabold text-[#1A201C] line-clamp-1">
+                        {b.name}
+                      </h3>
+                      <span className="text-[10px] text-[#64746A]">
+                        ID: {b.id.slice(0, 8)}...
+                      </span>
+                    </div>
 
-              {/* Actions Footer */}
-              <div className="flex items-center justify-between pt-3 border-t border-black/5 gap-2">
-                <div className="flex items-center gap-1">
-                  {!b.isActive && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs text-emerald-800"
-                      onClick={() => activateMutation.mutate(b.id)}
-                      isLoading={activateMutation.isPending}
-                    >
-                      Aktifkan
-                    </Button>
+                    {b.isActive ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-600 text-white shadow-xs tracking-wide shrink-0">
+                        <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                        BATCH AKTIF
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/5 text-[#64746A] shrink-0">
+                        Tidak Aktif
+                      </span>
+                    )}
+                  </div>
+
+                  {b.isActive && (
+                    <div className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                      <span>Sedang menerima pendaftaran kandidat</span>
+                    </div>
                   )}
-                  <Link href={`/admin/oprec/${b.id}`}>
-                    <Button variant="ghost" size="sm" className="text-xs">
-                      Detail
-                    </Button>
-                  </Link>
+
+                  <p className="text-xs text-[#64746A] line-clamp-2 leading-relaxed">
+                    {b.description || "Tidak ada deskripsi batch."}
+                  </p>
+
+                  {/* Capacity Progress Section (Poin 5) */}
+                  <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-white/60 border border-black/5 shadow-2xs">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#64746A] font-semibold flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5 text-[#274432]" />
+                        Kapasitas Terpenuhi
+                      </span>
+                      <span className="font-extrabold text-[#1A201C]">
+                        <span className={cn(pct >= 100 ? "text-rose-600 font-bold" : "text-emerald-700 font-bold")}>
+                          {filled}
+                        </span>{" "}
+                        / {quota} orang ({pct}%)
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-2 bg-black/10 rounded-full overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-500",
+                          pct >= 100
+                            ? "bg-rose-500"
+                            : pct >= 80
+                            ? "bg-amber-500"
+                            : "bg-emerald-600"
+                        )}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-[#64746A] pt-0.5">
+                      <span>Total Pelamar: <strong>{b.totalApplicants || 0} orang</strong></span>
+                      <span>Sisa Kuota: <strong>{Math.max(0, quota - filled)} kursi</strong></span>
+                    </div>
+                  </div>
+
+                  {(b.startDate || b.endDate) && (
+                    <div className="text-[11px] text-[#64746A] flex items-center gap-1.5 pt-0.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#274432]" />
+                      <span>
+                        {b.startDate ? new Date(b.startDate).toLocaleDateString("id-ID") : "-"} s/d{" "}
+                        {b.endDate ? new Date(b.endDate).toLocaleDateString("id-ID") : "-"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1.5"
-                    onClick={() => openEditModal(b)}
-                    aria-label="Edit Batch"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-[#64746A]" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => {
-                      if (confirm(`Yakin ingin menghapus / mengarsipkan batch "${b.name}"?`)) {
-                        deleteMutation.mutate(b.id);
-                      }
-                    }}
-                    aria-label="Hapus Batch"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                {/* Actions Footer */}
+                <div className="flex items-center justify-between pt-3 border-t border-black/5 gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {!b.isActive ? (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="text-xs bg-[#274432] hover:bg-[#1f3728]"
+                        onClick={() => activateMutation.mutate(b.id)}
+                        isLoading={activateMutation.isPending}
+                      >
+                        Jadikan Aktif
+                      </Button>
+                    ) : (
+                      <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-xl">
+                        ✓ Utama
+                      </span>
+                    )}
+                    <Link href={`/admin/oprec/${b.id}`}>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        Detail
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1.5"
+                      onClick={() => openEditModal(b)}
+                      aria-label="Edit Batch"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-[#64746A]" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        if (confirm(`Yakin ingin menghapus / mengarsipkan batch "${b.name}"?`)) {
+                          deleteMutation.mutate(b.id);
+                        }
+                      }}
+                      aria-label="Hapus Batch"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
-          ))}
+              </GlassCard>
+            );
+          })}
         </div>
       )}
 

@@ -73,11 +73,6 @@ export default function GoldenCandidatePublicPage() {
             <Logo size="sm" subtitle="Jalur Unggulan Riset" />
           </Link>
           <div className="flex items-center gap-1.5 sm:gap-3">
-            <Link href="/rekrutmen">
-              <span className="text-xs font-semibold text-[#64746A] hover:text-[#1A201C] px-2 sm:px-3 py-1.5 transition-colors">
-                Info Oprec
-              </span>
-            </Link>
             <Link href="/auth/login">
               <Button variant="outline" size="sm" className="text-xs px-2.5 sm:px-4">
                 Masuk
@@ -123,11 +118,11 @@ export default function GoldenCandidatePublicPage() {
               Isi Formulir Golden Candidate
             </Button>
           </Link>
-          <Link href="/rekrutmen" className="w-full sm:w-auto">
+          <a href="#kriteria" className="w-full sm:w-auto">
             <Button variant="outline" size="lg" className="w-full sm:w-auto justify-center">
-              Pelajari Oprec Reguler
+              Lihat Kriteria & Syarat
             </Button>
-          </Link>
+          </a>
         </div>
         <span className="text-xs text-[#64746A] mt-3">
           * Anda wajib login ke akun portal kandidat untuk dapat mengisi formulir.
@@ -164,7 +159,7 @@ export default function GoldenCandidatePublicPage() {
       </section>
 
       {/* Criteria & Requirements */}
-      <section className="px-4 sm:px-6 py-8 sm:py-12 max-w-4xl mx-auto w-full">
+      <section id="kriteria" className="px-4 sm:px-6 py-8 sm:py-12 max-w-4xl mx-auto w-full scroll-mt-20">
         <GlassCard className="p-5 sm:p-8 border border-white/80 bg-white/70">
           <div className="flex items-center gap-3 mb-6">
             <BookOpen className="w-6 h-6 text-[#274432]" />

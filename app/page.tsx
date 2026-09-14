@@ -64,11 +64,13 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
-  const isGoldenActive = Boolean(oprecStatus?.isGoldenCandidateActive);
   const isOprecActive = Boolean(
-    !isGoldenActive && (oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false)
+    oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false
   );
-  const isAnyActive = isGoldenActive || isOprecActive;
+  const isGoldenActive = Boolean(
+    !isOprecActive && Boolean(oprecStatus?.isGoldenCandidateActive)
+  );
+  const isAnyActive = isOprecActive || isGoldenActive;
 
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-[#274432] selection:text-white">
@@ -81,6 +83,14 @@ export default function HomePage() {
 
           {/* Desktop Navigation - Mutually Exclusive based on Active Mode */}
           <nav className="hidden md:flex items-center gap-2 sm:gap-3">
+            {isOprecActive && (
+              <Link href="/rekrutmen">
+                <Button variant="ghost" size="sm" leftIcon={<FileCheck className="w-3.5 h-3.5" />}>
+                  Panduan & Info Oprec
+                </Button>
+              </Link>
+            )}
+
             {isGoldenActive && (
               <Link href="/golden-candidate">
                 <Button
@@ -90,14 +100,6 @@ export default function HomePage() {
                   leftIcon={<Sparkles className="w-3.5 h-3.5 text-amber-600" />}
                 >
                   Jalur Golden
-                </Button>
-              </Link>
-            )}
-
-            {isOprecActive && (
-              <Link href="/rekrutmen">
-                <Button variant="ghost" size="sm" leftIcon={<FileCheck className="w-3.5 h-3.5" />}>
-                  Panduan & Info Oprec
                 </Button>
               </Link>
             )}
@@ -131,20 +133,20 @@ export default function HomePage() {
         {/* Mobile Dropdown Menu Drawer */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-3 pt-3 border-t border-black/5 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
-            {isGoldenActive && (
-              <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
-                  <span>Jalur Golden Candidate</span>
-                </div>
-              </Link>
-            )}
-
             {isOprecActive && (
               <Link href="/rekrutmen" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl hover:bg-white/60 text-xs font-semibold text-[#1A201C] transition-colors">
                   <FileCheck className="w-4 h-4 text-[#274432]" />
                   <span>Panduan & Info Oprec</span>
+                </div>
+              </Link>
+            )}
+
+            {isGoldenActive && (
+              <Link href="/golden-candidate" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-500/20 text-xs font-bold text-amber-900">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <span>Jalur Golden Candidate</span>
                 </div>
               </Link>
             )}
@@ -184,10 +186,10 @@ export default function HomePage() {
           <span className="text-xs font-semibold text-[#1A201C]">
             {isLoadingStatus
               ? "Memeriksa periode pendaftaran..."
-              : oprecStatus?.isGoldenCandidateActive
-              ? `Jalur Golden Candidate Dibuka: ${oprecStatus?.currentBatch || "Batch Aktif"}`
-              : (oprecStatus?.isActive || oprecStatus?.isOprecActive)
+              : isOprecActive
               ? `Oprec Reguler Dibuka: ${oprecStatus?.currentBatch || "Batch Aktif"}`
+              : isGoldenActive
+              ? `Jalur Golden Candidate Dibuka: ${oprecStatus?.currentBatch || "Batch Aktif"}`
               : "Semua Jalur Pendaftaran Sedang Ditutup"}
           </span>
         </div>
@@ -363,9 +365,16 @@ export default function HomePage() {
             <p>© {new Date().getFullYear()} STAS-RG Lab. All rights reserved.</p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <Link href="/rekrutmen" className="hover:text-[#1A201C] py-1">
-              Panduan Berkas
-            </Link>
+            {isOprecActive && (
+              <Link href="/rekrutmen" className="hover:text-[#1A201C] py-1">
+                Panduan Berkas
+              </Link>
+            )}
+            {isGoldenActive && (
+              <Link href="/golden-candidate" className="hover:text-[#1A201C] py-1">
+                Panduan Golden Candidate
+              </Link>
+            )}
             <span>•</span>
             <span className="hover:text-[#1A201C] cursor-pointer py-1">Kontak PIC Lab</span>
             <span>•</span>

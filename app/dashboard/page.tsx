@@ -8,7 +8,11 @@ import { useAuthStore } from "@/lib/store/auth.store";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ProgressStepper, SelectionStatus } from "@/components/ui/progress-stepper";
+import {
+  ProgressStepper,
+  GoldenProgressStepper,
+  SelectionStatus,
+} from "@/components/ui/progress-stepper";
 import {
   UserCheck,
   AlertTriangle,
@@ -21,6 +25,7 @@ import {
   Calendar,
   History,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function CandidateDashboardPage() {
   const { user } = useAuthStore();
@@ -46,6 +51,19 @@ export default function CandidateDashboardPage() {
         return Array.isArray(res.data?.data) ? res.data.data : [];
       } catch {
         return [];
+      }
+    },
+  });
+
+  // Query candidate golden application (Poin 6)
+  const { data: goldenAppData } = useQuery({
+    queryKey: ["candidateGoldenApp"],
+    queryFn: async () => {
+      try {
+        const res = await api.getGoldenApplication();
+        return res.data?.data;
+      } catch {
+        return null;
       }
     },
   });
@@ -127,8 +145,12 @@ export default function CandidateDashboardPage() {
         </div>
       </GlassCard>
 
-      {/* Progress Stepper Tahapan Seleksi */}
-      <ProgressStepper currentStatus={currentSelectionStatus} />
+      {/* Progress Stepper Tahapan Seleksi (Poin 6) */}
+      {goldenAppData?.id ? (
+        <GoldenProgressStepper currentStatus={goldenAppData.status || "PENDING"} />
+      ) : (
+        <ProgressStepper currentStatus={currentSelectionStatus} />
+      )}
 
       {/* Interview Alert Banner if any upcoming interview */}
       {upcomingInterview && (
@@ -269,17 +291,32 @@ export default function CandidateDashboardPage() {
               <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-900">
                 <Sparkles className="w-4 h-4" />
               </div>
-              <h3 className="text-sm font-bold text-[#1A201C]">
-                Jalur Golden Ticket
-              </h3>
+              <div className="flex flex-col">
+                <h3 className="text-sm font-bold text-[#1A201C]">
+                  Jalur Golden Ticket
+                </h3>
+                {goldenAppData?.id && (
+                  <span className="text-[10px] font-bold text-amber-900">
+                    Tahap: {goldenAppData.status || "PENDING"}
+                  </span>
+                )}
+              </div>
             </div>
             <p className="text-xs text-[#64746A] leading-relaxed">
-              Jalur khusus penugasan proyek lab bagi pendaftar dengan portofolio
-              unggul. Cukup lengkapi data profil Golden Candidate.
+              {goldenAppData?.id
+                ? "Aplikasi Golden Candidate Anda telah diajukan. Pantau perkembangan tahapan evaluasi portofolio & wawancara di sini."
+                : "Jalur khusus penugasan proyek lab bagi pendaftar dengan portofolio unggul. Cukup lengkapi data profil Golden Candidate."}
             </p>
             <Link href="/dashboard/golden-candidate" className="pt-2">
-              <Button variant="outline" size="sm" className="w-full">
-                Buka Formulir
+              <Button
+                variant={goldenAppData?.id ? "primary" : "outline"}
+                size="sm"
+                className={cn(
+                  "w-full",
+                  goldenAppData?.id && "bg-amber-600 hover:bg-amber-700 text-white"
+                )}
+              >
+                {goldenAppData?.id ? "Lihat Detail Golden" : "Buka Formulir"}
               </Button>
             </Link>
           </GlassCard>

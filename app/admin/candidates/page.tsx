@@ -138,8 +138,38 @@ export default function AdminCandidatesPage() {
           </p>
         </div>
 
-        {/* Tab Selection */}
-        <div className="flex items-center p-1 rounded-2xl sm:rounded-full bg-white/50 border border-white/60 shadow-xs backdrop-blur-md overflow-x-auto max-w-full scrollbar-none">
+        {/* Tab Selection: Oprec Reguler vs Golden Candidate vs Semua */}
+        <div className="flex items-center p-1 rounded-2xl sm:rounded-full bg-white/50 border border-white/60 shadow-xs backdrop-blur-md overflow-x-auto max-w-full scrollbar-none gap-1">
+          <button
+            onClick={() => {
+              setActiveTab("OPREC");
+              setPage(1);
+            }}
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
+              activeTab === "OPREC"
+                ? "bg-[#274432] text-white shadow-xs"
+                : "text-[#64746A] hover:text-[#1A201C]"
+            )}
+          >
+            <Users className="w-3.5 h-3.5" />
+            Oprec Reguler
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("GOLDEN");
+              setPage(1);
+            }}
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-bold transition-all cursor-pointer",
+              activeTab === "GOLDEN"
+                ? "bg-amber-600 text-white shadow-md ring-2 ring-amber-400/40"
+                : "text-amber-800 hover:text-amber-950 hover:bg-amber-50/60"
+            )}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+            Golden Candidate
+          </button>
           <button
             onClick={() => {
               setActiveTab("ALL");
@@ -148,43 +178,42 @@ export default function AdminCandidatesPage() {
             className={cn(
               "shrink-0 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
               activeTab === "ALL"
-                ? "bg-[#274432] text-white shadow-xs"
+                ? "bg-[#1A201C] text-white shadow-xs"
                 : "text-[#64746A] hover:text-[#1A201C]"
             )}
           >
             Semua ({meta.total || candidates.length})
           </button>
-          <button
-            onClick={() => {
-              setActiveTab("GOLDEN");
-              setPage(1);
-            }}
-            className={cn(
-              "shrink-0 inline-flex items-center gap-1 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
-              activeTab === "GOLDEN"
-                ? "bg-amber-600 text-white shadow-xs"
-                : "text-[#64746A] hover:text-[#1A201C]"
-            )}
-          >
-            <Sparkles className="w-3 h-3" />
-            Golden Ticket
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("OPREC");
-              setPage(1);
-            }}
-            className={cn(
-              "shrink-0 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
-              activeTab === "OPREC"
-                ? "bg-[#274432] text-white shadow-xs"
-                : "text-[#64746A] hover:text-[#1A201C]"
-            )}
-          >
-            Oprec Reguler
-          </button>
         </div>
       </div>
+
+      {/* Info & Setting Banner for Golden Candidate */}
+      {activeTab === "GOLDEN" && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 shadow-2xs">
+          <div className="flex items-start gap-2.5">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-900 shrink-0">
+              <Sparkles className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-amber-950">
+                Tabel Khusus: Jalur Golden Candidate
+              </span>
+              <span className="text-[11px] text-amber-900/80 leading-relaxed">
+                Menampilkan pendaftar jalur percepatan riset dengan rekam jejak & portofolio unggul. Buka atau tutup pendaftaran Golden melalui widget sidebar atau menu pengaturan.
+              </span>
+            </div>
+          </div>
+          <Link href="/admin/dashboard" className="shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full sm:w-auto text-xs bg-white border border-amber-500/30 text-amber-900 hover:bg-amber-50 font-bold"
+            >
+              Pengaturan Jalur Golden →
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Filter & Search Bar */}
       <GlassCard className="p-4 flex flex-col gap-3">
@@ -208,26 +237,40 @@ export default function AdminCandidatesPage() {
               className="flex-1 sm:flex-none px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
             >
               <option value="">Semua Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="SELEKSI_BERKAS">Seleksi Berkas</option>
-              <option value="WAWANCARA_1">Wawancara 1</option>
-              <option value="WAWANCARA_2">Wawancara 2</option>
-              <option value="DITERIMA">Diterima</option>
-              <option value="DITOLAK">Ditolak</option>
+              {activeTab === "GOLDEN" ? (
+                <>
+                  <option value="PENDING">Pending (Terkirim)</option>
+                  <option value="ADMINISTRATIVE">Seleksi Berkas (Administrative)</option>
+                  <option value="INTERVIEW">Wawancara Khusus</option>
+                  <option value="ACCEPTED">Diterima</option>
+                  <option value="REJECTED">Ditolak</option>
+                </>
+              ) : (
+                <>
+                  <option value="PENDING">Pending</option>
+                  <option value="SELEKSI_BERKAS">Seleksi Berkas</option>
+                  <option value="WAWANCARA_1">Wawancara 1</option>
+                  <option value="WAWANCARA_2">Wawancara 2</option>
+                  <option value="DITERIMA">Diterima</option>
+                  <option value="DITOLAK">Ditolak</option>
+                </>
+              )}
             </select>
 
-            <select
-              value={roleFilter}
-              onChange={(e) => {
-                setRoleFilter(e.target.value);
-                setPage(1);
-              }}
-              className="flex-1 sm:flex-none px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
-            >
-              <option value="">Semua Role</option>
-              <option value="RISET">Riset</option>
-              <option value="MAGANG">Magang</option>
-            </select>
+            {activeTab !== "GOLDEN" && (
+              <select
+                value={roleFilter}
+                onChange={(e) => {
+                  setRoleFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="flex-1 sm:flex-none px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+              >
+                <option value="">Semua Role</option>
+                <option value="RISET">Riset</option>
+                <option value="MAGANG">Magang</option>
+              </select>
+            )}
 
             <button
               onClick={() => refetch()}
@@ -258,12 +301,24 @@ export default function AdminCandidatesPage() {
                 onChange={(e) => setBulkStatus(e.target.value)}
                 className="px-3 py-1.5 rounded-xl bg-white text-[#1A201C] text-xs font-semibold outline-hidden"
               >
-                <option value="PENDING">Pending</option>
-                <option value="SELEKSI_BERKAS">Seleksi Berkas</option>
-                <option value="WAWANCARA_1">Wawancara 1</option>
-                <option value="WAWANCARA_2">Wawancara 2</option>
-                <option value="DITERIMA">Diterima</option>
-                <option value="DITOLAK">Ditolak</option>
+                {activeTab === "GOLDEN" ? (
+                  <>
+                    <option value="PENDING">Pending</option>
+                    <option value="ADMINISTRATIVE">Administrative</option>
+                    <option value="INTERVIEW">Interview</option>
+                    <option value="ACCEPTED">Accepted</option>
+                    <option value="REJECTED">Rejected</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="PENDING">Pending</option>
+                    <option value="SELEKSI_BERKAS">Seleksi Berkas</option>
+                    <option value="WAWANCARA_1">Wawancara 1</option>
+                    <option value="WAWANCARA_2">Wawancara 2</option>
+                    <option value="DITERIMA">Diterima</option>
+                    <option value="DITOLAK">Ditolak</option>
+                  </>
+                )}
               </select>
 
               <Button
@@ -294,28 +349,48 @@ export default function AdminCandidatesPage() {
         )}
       </GlassCard>
 
-      {/* Candidate Data Table */}
+      {/* Candidate Data Table (Separated for Golden vs Oprec) */}
       <GlassCard className="overflow-hidden p-0 border-white/60">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-black/10 bg-white/40 text-[#274432] uppercase tracking-wider font-bold">
-                <th className="py-4 px-4 w-10 text-center">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    onChange={toggleSelectAll}
-                    aria-label="Pilih Semua"
-                    className="rounded-sm accent-[#274432] cursor-pointer"
-                  />
-                </th>
-                <th className="py-4 px-4">Kandidat</th>
-                <th className="py-4 px-4">NIM & Prodi</th>
-                <th className="py-4 px-4">Universitas</th>
-                <th className="py-4 px-4">Role Minat</th>
-                <th className="py-4 px-4">Status Seleksi</th>
-                <th className="py-4 px-4 text-right">Aksi</th>
-              </tr>
+              {activeTab === "GOLDEN" ? (
+                <tr className="border-b border-amber-500/20 bg-amber-500/10 text-amber-950 uppercase tracking-wider font-bold">
+                  <th className="py-4 px-4 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                      aria-label="Pilih Semua"
+                      className="rounded-sm accent-amber-700 cursor-pointer"
+                    />
+                  </th>
+                  <th className="py-4 px-4">Kandidat Golden</th>
+                  <th className="py-4 px-4">Akademik & Kampus</th>
+                  <th className="py-4 px-4">Prestasi & Portofolio</th>
+                  <th className="py-4 px-4">Motivasi Riset</th>
+                  <th className="py-4 px-4">Tahap Seleksi Golden</th>
+                  <th className="py-4 px-4 text-right">Aksi</th>
+                </tr>
+              ) : (
+                <tr className="border-b border-black/10 bg-white/40 text-[#274432] uppercase tracking-wider font-bold">
+                  <th className="py-4 px-4 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                      aria-label="Pilih Semua"
+                      className="rounded-sm accent-[#274432] cursor-pointer"
+                    />
+                  </th>
+                  <th className="py-4 px-4">Kandidat</th>
+                  <th className="py-4 px-4">NIM & Prodi</th>
+                  <th className="py-4 px-4">Universitas</th>
+                  <th className="py-4 px-4">Role Minat</th>
+                  <th className="py-4 px-4">Status Seleksi</th>
+                  <th className="py-4 px-4 text-right">Aksi</th>
+                </tr>
+              )}
             </thead>
             <tbody className="divide-y divide-black/5">
               {isLoading ? (
@@ -327,9 +402,131 @@ export default function AdminCandidatesPage() {
               ) : candidates.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#64746A]">
-                    Tidak ditemukan data pendaftar yang sesuai.
+                    {activeTab === "GOLDEN"
+                      ? "Belum ada pendaftar melalui jalur Golden Candidate."
+                      : "Tidak ditemukan data pendaftar yang sesuai."}
                   </td>
                 </tr>
+              ) : activeTab === "GOLDEN" ? (
+                candidates.map((item: any) => {
+                  const cand = item.candidate || item;
+                  const itemKey = item.registrationId || item.id || cand.id;
+                  const goldenApp = item.goldenApplication || cand.goldenApplication;
+                  const name =
+                    cand.fullName ||
+                    item.fullName ||
+                    cand.user?.email ||
+                    item.email ||
+                    "Kandidat";
+                  const email =
+                    cand.user?.email || cand.email || item.email || "-";
+                  const nim = cand.nim || item.nim || "-";
+                  const prodi = cand.programStudi || item.programStudi || "-";
+                  const univ = cand.universitas || item.universitas || "-";
+                  const status =
+                    goldenApp?.status || item.status || cand.status || "PENDING";
+                  const pencapaian =
+                    goldenApp?.pencapaian || cand.pencapaian || "-";
+                  const motivasi =
+                    goldenApp?.motivasi || cand.motivasi || "-";
+                  const isSelected = selectedIds.includes(itemKey);
+
+                  return (
+                    <tr
+                      key={itemKey}
+                      className={cn(
+                        "hover:bg-amber-50/40 transition-colors",
+                        isSelected && "bg-amber-50/70"
+                      )}
+                    >
+                      <td className="py-4 px-4 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectOne(itemKey)}
+                          aria-label={`Pilih ${name}`}
+                          className="rounded-sm accent-amber-700 cursor-pointer"
+                        />
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1.5 font-bold text-[#1A201C]">
+                            <span>{name}</span>
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm text-[10px] font-bold bg-amber-500/20 text-amber-900">
+                              <Sparkles className="w-2.5 h-2.5" /> Golden
+                            </span>
+                          </div>
+                          <span className="text-[#64746A] text-[11px]">
+                            {email}
+                          </span>
+                          {item.appliedAt && (
+                            <span className="text-[10px] text-[#64746A]/80 pt-0.5">
+                              Diajukan: {new Date(item.appliedAt).toLocaleDateString("id-ID")}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-[#1A201C]">
+                            {univ}
+                          </span>
+                          <span className="text-[#64746A] text-[11px]">
+                            {prodi} • NIM {nim}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 max-w-[200px]">
+                        <p className="line-clamp-2 text-[#1A201C] font-medium leading-tight" title={pencapaian}>
+                          {pencapaian}
+                        </p>
+                      </td>
+                      <td className="py-4 px-4 max-w-[220px]">
+                        <p className="line-clamp-2 text-[#64746A] leading-tight" title={motivasi}>
+                          {motivasi}
+                        </p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold",
+                            status === "ACCEPTED"
+                              ? "bg-emerald-500/20 text-emerald-900 border border-emerald-500/30"
+                              : status === "REJECTED"
+                              ? "bg-rose-500/20 text-rose-900 border border-rose-500/30"
+                              : status === "INTERVIEW"
+                              ? "bg-blue-500/20 text-blue-900 border border-blue-500/30"
+                              : status === "ADMINISTRATIVE"
+                              ? "bg-purple-500/20 text-purple-900 border border-purple-500/30"
+                              : "bg-amber-500/20 text-amber-900 border border-amber-500/30"
+                          )}
+                        >
+                          {status === "ACCEPTED"
+                            ? "✓ Diterima"
+                            : status === "REJECTED"
+                            ? "✕ Ditolak"
+                            : status === "INTERVIEW"
+                            ? "Wawancara Khusus"
+                            : status === "ADMINISTRATIVE"
+                            ? "Seleksi Berkas"
+                            : "Pending Review"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <Link href={`/admin/candidates/${cand.id || item.id}`}>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300/40"
+                            leftIcon={<Eye className="w-3.5 h-3.5" />}
+                          >
+                            Review
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 candidates.map((item: any) => {
                   const cand = item.candidate || item;

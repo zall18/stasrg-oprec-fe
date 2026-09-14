@@ -34,6 +34,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
   const toast = useToast();
@@ -374,6 +375,55 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="flex flex-col gap-4">
+            {/* Active Mode Highlight Banner */}
+            <div
+              className={cn(
+                "p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs font-bold border",
+                settingData?.isActive
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950"
+                  : settingData?.isGoldenCandidateActive
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-950"
+                  : "bg-black/5 border-black/10 text-[#64746A]"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span
+                    className={cn(
+                      "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
+                      settingData?.isActive
+                        ? "bg-emerald-400"
+                        : settingData?.isGoldenCandidateActive
+                        ? "bg-amber-400"
+                        : "bg-gray-400"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "relative inline-flex rounded-full h-2.5 w-2.5",
+                      settingData?.isActive
+                        ? "bg-emerald-600"
+                        : settingData?.isGoldenCandidateActive
+                        ? "bg-amber-600"
+                        : "bg-gray-500"
+                    )}
+                  />
+                </span>
+                <span>
+                  {settingData?.isActive
+                    ? "Jalur Aktif: Oprec Reguler"
+                    : settingData?.isGoldenCandidateActive
+                    ? "Jalur Aktif: Golden Candidate"
+                    : "Semua Jalur Sedang Ditutup"}
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold opacity-75">
+                {settingData?.isActive || settingData?.isGoldenCandidateActive
+                  ? "Mutually Exclusive"
+                  : "Standby"}
+              </span>
+            </div>
+
             <Input
               label="Nama Batch Aktif"
               value={batchName}

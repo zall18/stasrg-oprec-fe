@@ -15,8 +15,10 @@ import {
   Award,
   Loader2,
   AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
+import { GoldenProgressStepper } from "@/components/ui/progress-stepper";
 
 interface GoldenFormData {
   motivasi: string;
@@ -179,21 +181,47 @@ export default function GoldenCandidatePage() {
                 : "PENDING"
             }
           >
-            Status Aplikasi: {existingGoldenApp.status || "TERKIRIM"}
+            Tahap Seleksi: {existingGoldenApp.status || "PENDING"}
           </Badge>
         )}
       </div>
 
-      {(existingGoldenApp || hasActiveRegistration) && (
+      {/* Golden Candidate Selection Stage Tracking (Poin 6) */}
+      {existingGoldenApp && (
+        <div className="flex flex-col gap-4">
+          <GoldenProgressStepper currentStatus={existingGoldenApp.status || "PENDING"} />
+          <div className="p-4 rounded-2xl bg-white/70 border border-amber-500/20 flex items-start gap-3 shadow-2xs">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-900 shrink-0">
+              <Sparkles className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex flex-col gap-1 text-xs">
+              <span className="font-bold text-amber-950">
+                Informasi Progres Seleksi Golden Candidate
+              </span>
+              <p className="text-[#64746A] leading-relaxed">
+                {existingGoldenApp.status === "ACCEPTED"
+                  ? "Selamat! Anda dinyatakan LULUS seleksi jalur Golden Candidate. Tim koordinator lab akan segera menghubungi Anda untuk penugasan Assigned Project dan onboarding."
+                  : existingGoldenApp.status === "INTERVIEW"
+                  ? "Aplikasi portofolio Anda telah lolos seleksi berkas. Anda dijadwalkan untuk mengikuti Wawancara Prioritas bersama Principal Investigator Lab."
+                  : existingGoldenApp.status === "ADMINISTRATIVE"
+                  ? "Berkas portofolio, IPK, dan esai motivasi Anda sedang dalam proses peninjauan mendalam oleh Tim Reviewer Riset STAS-RG."
+                  : existingGoldenApp.status === "REJECTED"
+                  ? "Berkas Anda belum memenuhi kualifikasi khusus jalur Golden Candidate. Anda dipersilakan mendaftar kembali pada periode seleksi berikutnya."
+                  : "Formulir pendaftaran Golden Candidate Anda telah diterima sistem. Menunggu peninjauan berkas administratif oleh admin."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasActiveRegistration && !existingGoldenApp && (
         <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-500/20 flex flex-col gap-2 shadow-xs">
           <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
             <AlertTriangle className="w-4 h-4" />
             Pendaftaran Diblokir
           </div>
           <p className="text-xs text-amber-800/80">
-            {existingGoldenApp
-              ? "Anda sudah mengajukan form Golden Candidate. Silakan tunggu hasil evaluasi dari tim admin."
-              : `Anda sudah terdaftar di Oprec Reguler untuk batch ${activeBatch}. Anda tidak dapat mendaftar jalur Golden Ticket secara bersamaan.`}
+            Anda sudah terdaftar di Oprec Reguler untuk batch {activeBatch}. Anda tidak dapat mendaftar jalur Golden Ticket secara bersamaan.
           </p>
         </div>
       )}
