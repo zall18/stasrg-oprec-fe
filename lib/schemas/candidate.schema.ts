@@ -74,6 +74,7 @@ export const updateStatusSchema = z.object({
     "WAWANCARA_1",
     "WAWANCARA_2",
     "DITERIMA",
+    "DITOLAK",
   ]),
 });
 

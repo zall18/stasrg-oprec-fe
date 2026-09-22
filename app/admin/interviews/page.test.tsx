@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@/components/ui/toast";
 import { api } from "@/lib/api/client";
 
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock("@/lib/api/client", () => ({
   api: {
     getAdminInterviews: vi.fn(),
@@ -54,7 +58,7 @@ describe("app/admin/interviews", () => {
     renderWithClient(<AdminInterviewsPage />);
 
     expect(
-      screen.getByRole("heading", { name: /Penjadwalan Wawancara/i })
+      await screen.findByRole("heading", { name: /Penjadwalan Wawancara/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Buat Jadwal Wawancara/i })

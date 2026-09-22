@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge, BadgeVariant } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, sanitizeExternalUrl } from "@/lib/utils";
 import {
   ArrowLeft,
   GraduationCap,
@@ -27,6 +27,9 @@ import {
   Eye,
   Award,
   Quote,
+  Video,
+  MapPin,
+  Clock,
 } from "lucide-react";
 
 export default function CandidateDetailPage() {
@@ -57,11 +60,27 @@ export default function CandidateDetailPage() {
   const goldenApp = candidate.goldenApplication || profile?.goldenApplication || (candidate.goldenApplications ? candidate.goldenApplications[0] : null);
   const currentGoldenStatus = goldenApp?.status || "PENDING";
 
+  const isGolden = Boolean(
+    profile?.isGoldenCandidate ||
+    profile?.isGolden ||
+    candidate?.isGoldenCandidate ||
+    candidate?.isGolden ||
+    goldenApp
+  );
+
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [assignedProject, setAssignedProject] = useState<string>("");
   const [selectedGoldenStatus, setSelectedGoldenStatus] = useState<string>("");
   const [isInit, setIsInit] = useState(false);
   const [isMotivationModalOpen, setIsMotivationModalOpen] = useState(false);
+
+  // Interview scheduling modal state
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [interviewDatetime, setInterviewDatetime] = useState("");
+  const [interviewType, setInterviewType] = useState<"ONLINE" | "OFFLINE">("ONLINE");
+  const [interviewLink, setInterviewLink] = useState("https://meet.google.com/");
+  const [interviewLocation, setInterviewLocation] = useState("");
+  const [interviewNotes, setInterviewNotes] = useState("");
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,7 +124,7 @@ export default function CandidateDetailPage() {
   // Mutation for updating Golden status
   const updateGoldenStatusMutation = useMutation({
     mutationFn: async () => {
-      await api.updateGoldenStatus(registrationId, selectedGoldenStatus);
+      await api.updateGoldenStatus(candidateId, selectedGoldenStatus);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["candidateDetail", candidateId] });
@@ -115,6 +134,30 @@ export default function CandidateDetailPage() {
     },
     onError: (err: any) => {
       toast.error(err.message || "Gagal memperbarui status Golden Candidate");
+    },
+  });
+
+  // Mutation for scheduling interview directly from detail page
+  const scheduleInterviewMutation = useMutation({
+    mutationFn: async () => {
+      if (!interviewDatetime) throw new Error("Waktu wawancara wajib diisi");
+      return api.createInterview({
+        candidateId,
+        datetime: new Date(interviewDatetime).toISOString(),
+        type: interviewType,
+        link: interviewType === "ONLINE" ? interviewLink : undefined,
+        location: interviewType === "OFFLINE" ? interviewLocation : undefined,
+        notes: interviewNotes || undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminInterviews"] });
+      queryClient.invalidateQueries({ queryKey: ["candidateDetail", candidateId] });
+      toast.success("Jadwal wawancara berhasil dibuat dan notifikasi dikirim!");
+      setIsInterviewModalOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal menjadwalkan wawancara");
     },
   });
 
@@ -140,13 +183,6 @@ export default function CandidateDetailPage() {
       </div>
     );
   }
-
-  const isGolden = Boolean(
-    profile?.isGoldenCandidate ||
-    profile?.isGolden ||
-    candidate?.isGoldenCandidate ||
-    candidate?.isGolden
-  );
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
@@ -175,8 +211,19 @@ export default function CandidateDetailPage() {
           </div>
         </div>
 
-        <Badge variant={currentStatus as BadgeVariant} className="self-start sm:self-auto">
-          Tahapan: {currentStatus}
+        <Badge
+          variant={
+            isGolden
+              ? currentGoldenStatus === "ACCEPTED"
+                ? "GOLDEN"
+                : currentGoldenStatus === "REJECTED"
+                ? "DITOLAK"
+                : "PENDING"
+              : (currentStatus as BadgeVariant)
+          }
+          className="self-start sm:self-auto"
+        >
+          Tahapan: {isGolden ? currentGoldenStatus : currentStatus}
         </Badge>
       </div>
 
@@ -268,7 +315,7 @@ export default function CandidateDetailPage() {
                 {profile?.cvUrl ? (
                   <div className="flex items-center gap-2 flex-wrap">
                     <a
-                      href={profile.cvUrl}
+                      href={sanitizeExternalUrl(profile.cvUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -280,7 +327,7 @@ export default function CandidateDetailPage() {
                         Preview File
                       </Button>
                     </a>
-                    <a href={profile.cvUrl} download target="_blank" rel="noopener noreferrer">
+                    <a href={sanitizeExternalUrl(profile.cvUrl)} download target="_blank" rel="noopener noreferrer">
                       <Button
                         variant="outline"
                         size="sm"
@@ -306,7 +353,7 @@ export default function CandidateDetailPage() {
                 {profile?.transkripUrl ? (
                   <div className="flex items-center gap-2">
                     <a
-                      href={profile.transkripUrl}
+                      href={sanitizeExternalUrl(profile.transkripUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -331,7 +378,7 @@ export default function CandidateDetailPage() {
                     Tautan Portofolio / Karya
                   </span>
                   <a
-                    href={profile.portfolioUrl}
+                    href={sanitizeExternalUrl(profile.portfolioUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#274432] font-bold flex items-center gap-1 hover:underline"
@@ -432,63 +479,67 @@ export default function CandidateDetailPage() {
           {/* Section 4: Catatan Internal Admin (Dipindahkan ke kolom utama agar luas & mengisi ruang kosong) */}
           <CandidateNotesSection
             candidateId={candidateId}
-            registrationId={registrationId}
+            registrationId={!isGolden && oprecRecord.id ? oprecRecord.id : undefined}
           />
         </div>
 
         {/* Right Column: Admin Actions & Decisions */}
         <div className="flex flex-col gap-6">
-          <GlassCard className="p-4 sm:p-6 flex flex-col gap-5 border-white/60">
-            <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-800">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <h2 className="text-sm font-bold text-[#1A201C]">
-                Aksi Keputusan Seleksi
-              </h2>
-            </div>
-
-            <Select
-              label="Perbarui Status Seleksi"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              options={[
-                { label: "Pending (Menunggu Review)", value: "PENDING" },
-                { label: "Seleksi Berkas Lolos", value: "SELEKSI_BERKAS" },
-                { label: "Tahap Wawancara 1", value: "WAWANCARA_1" },
-                { label: "Tahap Wawancara 2", value: "WAWANCARA_2" },
-                { label: "Diterima di Lab", value: "DITERIMA" },
-              ]}
-            />
-
-            {/* Dynamic Assigned Project Field when Status is DITERIMA */}
-            {selectedStatus === "DITERIMA" && (
-              <div className="flex flex-col gap-2 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-500/20">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
-                  <FolderPlus className="w-4 h-4 text-emerald-700" />
-                  <span>Penugasan Proyek (Assigned Project)</span>
+          {/* Regular Oprec Decision Card (Hanya muncul jika BUKAN Golden Candidate) */}
+          {!isGolden && (
+            <GlassCard className="p-4 sm:p-6 flex flex-col gap-5 border-white/60">
+              <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-800">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
-                <Input
-                  placeholder="Contoh: Autonomous Shuttle Perception"
-                  value={assignedProject}
-                  onChange={(e) => setAssignedProject(e.target.value)}
-                  helperText="Ketikkan nama sub-riset atau proyek yang akan dikerjakan kandidat."
-                />
+                <h2 className="text-sm font-bold text-[#1A201C]">
+                  Aksi Keputusan Seleksi
+                </h2>
               </div>
-            )}
 
-            <Button
-              variant="primary"
-              isLoading={updateStatusMutation.isPending}
-              onClick={() => updateStatusMutation.mutate()}
-              leftIcon={<Save className="w-4 h-4" />}
-            >
-              Simpan Perubahan
-            </Button>
-          </GlassCard>
+              <Select
+                label="Perbarui Status Seleksi"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                options={[
+                  { label: "Pending (Menunggu Review)", value: "PENDING" },
+                  { label: "Seleksi Berkas Lolos", value: "SELEKSI_BERKAS" },
+                  { label: "Tahap Wawancara 1", value: "WAWANCARA_1" },
+                  { label: "Tahap Wawancara 2", value: "WAWANCARA_2" },
+                  { label: "Diterima di Lab", value: "DITERIMA" },
+                  { label: "Ditolak (Tidak Lolos)", value: "DITOLAK" },
+                ]}
+              />
+
+              {/* Dynamic Assigned Project Field when Status is DITERIMA */}
+              {selectedStatus === "DITERIMA" && (
+                <div className="flex flex-col gap-2 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-500/20">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
+                    <FolderPlus className="w-4 h-4 text-emerald-700" />
+                    <span>Penugasan Proyek (Assigned Project)</span>
+                  </div>
+                  <Input
+                    placeholder="Contoh: Autonomous Shuttle Perception"
+                    value={assignedProject}
+                    onChange={(e) => setAssignedProject(e.target.value)}
+                    helperText="Ketikkan nama sub-riset atau proyek yang akan dikerjakan kandidat."
+                  />
+                </div>
+              )}
+
+              <Button
+                variant="primary"
+                isLoading={updateStatusMutation.isPending}
+                onClick={() => updateStatusMutation.mutate()}
+                leftIcon={<Save className="w-4 h-4" />}
+              >
+                Simpan Perubahan
+              </Button>
+            </GlassCard>
+          )}
 
           {/* Golden Candidate Decision Card */}
-          {goldenApp && (
+          {(isGolden || goldenApp) && (
             <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/20">
               <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
                 <div className="flex items-center gap-2">
@@ -504,7 +555,7 @@ export default function CandidateDetailPage() {
                 </Badge>
               </div>
 
-              {goldenApp.motivasi && (
+              {goldenApp?.motivasi && (
                 <button
                   type="button"
                   onClick={() => setIsMotivationModalOpen(true)}
@@ -545,7 +596,7 @@ export default function CandidateDetailPage() {
             </GlassCard>
           )}
 
-          {/* Quick Interview Link */}
+          {/* Quick Interview Scheduling Card */}
           <GlassCard className="p-4 sm:p-6 flex flex-col gap-3 border-white/60">
             <h3 className="text-sm font-bold text-[#1A201C] flex items-center gap-2">
               <Calendar className="w-4 h-4 text-[#274432]" />
@@ -554,11 +605,25 @@ export default function CandidateDetailPage() {
             <p className="text-xs text-[#64746A] leading-relaxed">
               Jadwalkan sesi tanya jawab teknis daring atau luring bersama kandidat ini.
             </p>
-            <Link href={`/admin/interviews?candidateId=${candidateId}`}>
-              <Button variant="outline" size="sm" className="w-full">
-                Jadwalkan Wawancara Kandidat
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setInterviewDatetime(new Date().toISOString().slice(0, 16));
+                  setIsInterviewModalOpen(true);
+                }}
+                leftIcon={<Calendar className="w-4 h-4" />}
+              >
+                Jadwalkan Wawancara Sekarang
               </Button>
-            </Link>
+              <Link href={`/admin/interviews?candidateId=${candidateId}`}>
+                <Button variant="ghost" size="sm" className="w-full text-xs">
+                  Buka Kalender Wawancara &rarr;
+                </Button>
+              </Link>
+            </div>
           </GlassCard>
         </div>
       </div>
@@ -619,6 +684,125 @@ export default function CandidateDetailPage() {
                 onClick={() => setIsMotivationModalOpen(false)}
               >
                 Tutup
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL POPUP JADWAL WAWANCARA LANGSUNG */}
+      {isInterviewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/80 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#1A201C]">
+                    Jadwalkan Wawancara
+                  </h3>
+                  <span className="text-xs text-[#64746A]">
+                    {profile?.fullName || candidate?.user?.email || "Kandidat"}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsInterviewModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3 text-xs">
+              <Input
+                label="Tanggal & Waktu Wawancara *"
+                type="datetime-local"
+                value={interviewDatetime}
+                onChange={(e) => setInterviewDatetime(e.target.value)}
+              />
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-semibold text-[#1A201C]">
+                  Jenis Wawancara
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInterviewType("ONLINE")}
+                    className={cn(
+                      "p-2.5 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5",
+                      interviewType === "ONLINE"
+                        ? "bg-[#274432] text-white border-[#274432]"
+                        : "bg-black/[0.02] text-[#64746A] border-black/10"
+                    )}
+                  >
+                    <Video className="w-3.5 h-3.5" /> Daring (Online)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInterviewType("OFFLINE")}
+                    className={cn(
+                      "p-2.5 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5",
+                      interviewType === "OFFLINE"
+                        ? "bg-[#274432] text-white border-[#274432]"
+                        : "bg-black/[0.02] text-[#64746A] border-black/10"
+                    )}
+                  >
+                    <MapPin className="w-3.5 h-3.5" /> Luring (Tatap Muka)
+                  </button>
+                </div>
+              </div>
+
+              {interviewType === "ONLINE" ? (
+                <Input
+                  label="Tautan Google Meet / Zoom"
+                  placeholder="https://meet.google.com/..."
+                  value={interviewLink}
+                  onChange={(e) => setInterviewLink(e.target.value)}
+                />
+              ) : (
+                <Input
+                  label="Lokasi / Ruang Wawancara"
+                  placeholder="Contoh: Lab STAS-RG Lt. 3 Gedung Riset"
+                  value={interviewLocation}
+                  onChange={(e) => setInterviewLocation(e.target.value)}
+                />
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-semibold text-[#1A201C]">
+                  Catatan Tambahan untuk Kandidat
+                </label>
+                <textarea
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-2xl bg-black/[0.02] border border-black/10 text-xs text-[#1A201C] outline-hidden placeholder:text-[#64746A]/60"
+                  placeholder="Instruksi tambahan bagi kandidat..."
+                  value={interviewNotes}
+                  onChange={(e) => setInterviewNotes(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-black/5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => setIsInterviewModalOpen(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full sm:w-auto"
+                isLoading={scheduleInterviewMutation.isPending}
+                onClick={() => scheduleInterviewMutation.mutate()}
+              >
+                Simpan & Kirim Jadwal
               </Button>
             </div>
           </div>

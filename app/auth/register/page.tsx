@@ -10,7 +10,6 @@ import { api } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/store/auth.store";
 import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { Mail, Lock, ArrowRight, ArrowLeft, UserCheck } from "lucide-react";
@@ -100,15 +99,6 @@ export default function RegisterPage() {
                 leftIcon={<Lock className="w-4 h-4" />}
                 error={errors.password?.message}
                 {...register("password")}
-              />
-
-              <Select
-                label="Tipe Akun (Role)"
-                options={[
-                  { label: "Kandidat (Mahasiswa Pendaftar)", value: "CANDIDATE" },
-                  { label: "Admin / PIC Seleksi Lab", value: "ADMIN" },
-                ]}
-                {...register("role")}
               />
 
               <div className="pt-2">

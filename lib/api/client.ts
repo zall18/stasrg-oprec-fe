@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 
 export const BASE_API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://stas-rg-oprec-be-production.up.railway.app/api";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
 
 export const apiClient = axios.create({
   baseURL: BASE_API_URL,
@@ -198,4 +198,12 @@ export const api = {
     apiClient.patch(`/admin/announcements/${id}`, data),
   deleteAnnouncement: (id: string) =>
     apiClient.delete(`/admin/announcements/${id}`),
+
+  // Admin: Admin Account Management
+  getAdmins: () => apiClient.get("/admin/admins"),
+  createAdmin: (data: { email: string; password: string }) =>
+    apiClient.post("/admin/admins", data),
+  deleteAdmin: (id: string) => apiClient.delete(`/admin/admins/${id}`),
+  resetAdminPassword: (id: string, newPassword: string) =>
+    apiClient.patch(`/admin/admins/${id}/password`, { newPassword }),
 };

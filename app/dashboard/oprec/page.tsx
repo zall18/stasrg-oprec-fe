@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
@@ -15,13 +15,54 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
-  ArrowRight,
 } from "lucide-react";
+
+function CountdownBadge({ endDate }: { endDate: string }) {
+  const [days, setDays] = useState<string | null>(null);
+
+  useEffect(() => {
+    const end = new Date(endDate).getTime();
+    if (isNaN(end)) return;
+
+    const compute = () => {
+      const diff = end - Date.now();
+      return diff <= 0
+        ? "Pendaftaran Ditutup"
+        : `${Math.ceil(diff / (1000 * 60 * 60 * 24))} Hari Lagi`;
+    };
+
+    const timer = setTimeout(() => {
+      setDays(compute());
+    }, 0);
+
+    const interval = setInterval(() => {
+      setDays(compute());
+    }, 60000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [endDate]);
+
+  if (!days) return null;
+
+  return (
+    <span className="self-start sm:self-auto text-xs font-semibold px-3 py-1 rounded-full bg-[#274432] text-white">
+      {days}
+    </span>
+  );
+}
 
 export default function OprecApplyPage() {
   const toast = useToast();
   const [isApplying, setIsApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const isClient = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const { data: pageData, isLoading } = useQuery({
     queryKey: ["oprecPageData"],
@@ -45,11 +86,21 @@ export default function OprecApplyPage() {
     oprec?.isOprecActive ?? oprec?.isActive ?? false
   );
 
+  const isExpired = Boolean(
+    isClient &&
+    oprec?.endDate &&
+    new Date(oprec.endDate).getTime() < Date.now()
+  );
+
   const isBlockedByGolden = pageData?.golden && pageData?.golden.status !== "REJECTED";
-  const isBlockedByReg = pageData?.regs.some((r: any) => r.batch?.name === oprec?.currentBatch);
-  const isBlocked = isBlockedByGolden || isBlockedByReg || hasApplied;
+  const isBlockedByReg = pageData?.regs.some((r: { batch?: { name?: string } }) => r.batch?.name === oprec?.currentBatch);
+  const isBlocked = isBlockedByGolden || isBlockedByReg || hasApplied || isExpired;
 
   const handleApply = async () => {
+    if (isExpired) {
+      toast.error("Batas akhir pendaftaran batch ini telah lewat.");
+      return;
+    }
     setIsApplying(true);
     try {
       await api.applyOprec(oprec?.currentBatch);
@@ -57,11 +108,9 @@ export default function OprecApplyPage() {
       toast.success(
         `Pendaftaran Oprec ${oprec?.currentBatch || "STAS-RG"} berhasil dikirim!`
       );
-    } catch (err: any) {
-      toast.error(
-        err.message ||
-          "Gagal mendaftar oprec. Pastikan Anda telah melengkapi data profil terlebih dahulu."
-      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal mendaftar oprec. Pastikan Anda telah melengkapi data profil terlebih dahulu.";
+      toast.error(message);
     } finally {
       setIsApplying(false);
     }
@@ -138,11 +187,7 @@ export default function OprecApplyPage() {
                   <span className="text-xs font-bold text-[#274432]">
                     Batas Pendaftaran Berakhir:
                   </span>
-                  <span className="self-start sm:self-auto text-xs font-semibold px-3 py-1 rounded-full bg-[#274432] text-white">
-                    {new Date(oprec.endDate) > new Date()
-                      ? `${Math.ceil((new Date(oprec.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} Hari Lagi`
-                      : "Pendaftaran Ditutup"}
-                  </span>
+                  <CountdownBadge endDate={oprec.endDate} />
                 </div>
               )}
             </div>
@@ -170,6 +215,25 @@ export default function OprecApplyPage() {
             </div>
           )}
 
+          {isExpired && !hasApplied && (
+            <div className="p-4 rounded-2xl bg-rose-50/90 border border-rose-500/20 flex flex-col gap-2 shadow-xs">
+              <div className="flex items-center gap-2 text-rose-900 font-bold text-sm">
+                <AlertCircle className="w-4 h-4" />
+                Batas Waktu Pendaftaran Telah Berakhir
+              </div>
+              <p className="text-xs text-rose-800/80">
+                Periode pendaftaran untuk batch {oprec?.currentBatch || "ini"} telah ditutup pada{" "}
+                {new Date(oprec?.endDate || "").toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}. Anda tidak dapat lagi mengirimkan formulir pendaftaran.
+              </p>
+            </div>
+          )}
+
           {hasApplied ? (
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50/80 border border-emerald-500/30 text-emerald-950">
               <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
@@ -191,7 +255,7 @@ export default function OprecApplyPage() {
                 onClick={handleApply}
                 rightIcon={<Rocket className="w-4 h-4" />}
               >
-                Daftar Oprec Sekarang
+                {isExpired ? "Pendaftaran Ditutup (Batas Akhir Lewat)" : "Daftar Oprec Sekarang"}
               </Button>
             </div>
           )}

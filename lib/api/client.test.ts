@@ -61,5 +61,9 @@ describe("lib/api/client", () => {
     expect(typeof api.createAnnouncement).toBe("function");
     expect(typeof api.updateAnnouncement).toBe("function");
     expect(typeof api.deleteAnnouncement).toBe("function");
+    expect(typeof api.getAdmins).toBe("function");
+    expect(typeof api.createAdmin).toBe("function");
+    expect(typeof api.deleteAdmin).toBe("function");
+    expect(typeof api.resetAdminPassword).toBe("function");
   });
 });

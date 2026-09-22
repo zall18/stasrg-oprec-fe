@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export function proxy(request: NextRequest) {
+export function middleware() {
   const response = NextResponse.next();
 
   // Security Headers

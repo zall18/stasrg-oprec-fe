@@ -13,3 +13,21 @@ export function formatBytes(bytes: number, decimals = 2) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
+
+export function sanitizeExternalUrl(url?: string | null): string {
+  if (!url) return "#";
+  const trimmed = url.trim();
+  if (!trimmed) return "#";
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return trimmed;
+    }
+    return "#";
+  } catch {
+    if (!trimmed.includes(":") && trimmed.includes(".")) {
+      return `https://${trimmed}`;
+    }
+    return "#";
+  }
+}

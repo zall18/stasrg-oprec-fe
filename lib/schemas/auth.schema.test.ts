@@ -34,4 +34,15 @@ describe("lib/schemas/auth.schema", () => {
       expect(valid.data.role).toBe("CANDIDATE");
     }
   });
+
+  it("defaults role to CANDIDATE when role is omitted", () => {
+    const valid = registerSchema.safeParse({
+      email: "newuser@stasrg.org",
+      password: "securepassword",
+    });
+    expect(valid.success).toBe(true);
+    if (valid.success) {
+      expect(valid.data.role).toBe("CANDIDATE");
+    }
+  });
 });

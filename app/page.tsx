@@ -47,9 +47,10 @@ export default function HomePage() {
       })
       .catch(() => {
         setOprecStatus({
-          isOprecActive: true,
-          currentBatch: "Batch 1 2026",
-          description: "Periode Pendaftaran Terbuka STAS-RG",
+          isOprecActive: false,
+          isActive: false,
+          currentBatch: "",
+          description: "Pendaftaran sedang ditutup",
         });
       })
       .finally(() => setIsLoadingStatus(false));
@@ -64,8 +65,18 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
+  const isClient = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const isOprecExpired = Boolean(
+    isClient && oprecStatus?.endDate && new Date(oprecStatus.endDate).getTime() < Date.now()
+  );
+
   const isOprecActive = Boolean(
-    oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false
+    (oprecStatus?.isOprecActive ?? oprecStatus?.isActive ?? false) && !isOprecExpired
   );
   const isGoldenActive = Boolean(
     !isOprecActive && Boolean(oprecStatus?.isGoldenCandidateActive)

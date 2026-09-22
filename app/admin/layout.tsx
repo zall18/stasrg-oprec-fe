@@ -4,32 +4,23 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth.store";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { useToast } from "@/components/ui/toast";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   LayoutDashboard,
   Users,
   LogOut,
   Loader2,
   FileSpreadsheet,
-  ToggleLeft,
-  ToggleRight,
-  Settings,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
   Menu,
   X,
-  Sparkles,
   Layers,
   CalendarCheck,
   Megaphone,
   Activity,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,77 +32,29 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const toast = useToast();
-  const queryClient = useQueryClient();
   const { user, isAuthenticated, loadFromStorage, clearAuth } = useAuthStore();
 
-  const [isChecking, setIsChecking] = useState(true);
+  const isClient = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isOprecExpanded, setIsOprecExpanded] = useState(false);
-  const [batchNameInput, setBatchNameInput] = useState("");
 
   useEffect(() => {
     loadFromStorage();
-    setIsChecking(false);
   }, [loadFromStorage]);
 
   useEffect(() => {
-    if (!isChecking) {
+    if (isClient) {
       if (!isAuthenticated) {
         router.push("/auth/login");
       } else if (user?.role !== "ADMIN") {
         router.push("/dashboard");
       }
     }
-  }, [isChecking, isAuthenticated, user, router]);
-
-  // Query Oprec Settings for the Sidebar Widget
-  const { data: settingData, isLoading: isLoadingSetting } = useQuery({
-    queryKey: ["oprecSettings"],
-    queryFn: async () => {
-      const res = await api.getRecruitmentSetting();
-      return res.data?.data;
-    },
-    enabled: isAuthenticated && user?.role === "ADMIN",
-  });
-
-  useEffect(() => {
-    if (settingData?.currentBatch) {
-      setBatchNameInput(settingData.currentBatch);
-    }
-  }, [settingData]);
-
-  // Toggle Oprec / Golden Active Status mutation
-  const toggleMutation = useMutation({
-    mutationFn: async ({
-      isActive,
-      isGoldenCandidateActive,
-      currentBatch,
-    }: {
-      isActive?: boolean;
-      isGoldenCandidateActive?: boolean;
-      currentBatch?: string;
-    }) => {
-      return api.updateRecruitmentSetting({
-        isActive: isActive !== undefined ? isActive : false,
-        isGoldenCandidateActive:
-          isGoldenCandidateActive !== undefined ? isGoldenCandidateActive : false,
-        currentBatch: currentBatch || settingData?.currentBatch || "Batch 1",
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["oprecSettings"] });
-      queryClient.invalidateQueries({ queryKey: ["oprecStatus"] });
-      queryClient.invalidateQueries({ queryKey: ["adminStats"] });
-      toast.success("Pengaturan pendaftaran berhasil diperbarui!");
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Gagal mengubah status pendaftaran");
-    },
-  });
-
-  const isOprecActive = Boolean(settingData?.isActive);
-  const isGoldenActive = Boolean(settingData?.isGoldenCandidateActive);
+  }, [isClient, isAuthenticated, user, router]);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -137,7 +80,7 @@ export default function AdminLayout({
     router.push("/auth/login");
   };
 
-  if (isChecking) {
+  if (!isClient) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F2F4F0]">
         <Loader2 className="w-8 h-8 animate-spin text-[#274432]" />
@@ -175,6 +118,11 @@ export default function AdminLayout({
       label: "Pengumuman",
       href: "/admin/announcements",
       icon: <Megaphone className="w-4 h-4" />,
+    },
+    {
+      label: "Kelola Admin",
+      href: "/admin/admins",
+      icon: <ShieldCheck className="w-4 h-4" />,
     },
   ];
 
@@ -242,147 +190,6 @@ export default function AdminLayout({
               );
             })}
           </nav>
-
-          {/* SIDEBAR WIDGET: Kendali & Atur Oprec & Golden Candidate */}
-          <div className="p-4 rounded-3xl bg-[#F5F7EC]/90 border border-[#274432]/15 shadow-xs flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4 text-[#274432]" />
-                <span className="text-xs font-bold text-[#1A201C]">
-                  Atur Pendaftaran
-                </span>
-              </div>
-              <span
-                className={cn(
-                  "px-2 py-0.5 rounded-full text-[10px] font-bold",
-                  isOprecActive
-                    ? "bg-emerald-600 text-white"
-                    : isGoldenActive
-                    ? "bg-amber-600 text-white"
-                    : "bg-black/10 text-[#64746A]"
-                )}
-              >
-                {isOprecActive
-                  ? "Oprec Buka"
-                  : isGoldenActive
-                  ? "Golden Buka"
-                  : "Ditutup"}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-0.5 text-[11px]">
-              <span className="text-[#64746A]">Batch Utama:</span>
-              <span className="font-semibold text-[#1A201C] truncate">
-                {settingData?.currentBatch || "Batch 1 - 2026"}
-              </span>
-            </div>
-
-            {/* Quick Toggle Controls */}
-            <div className="flex flex-col gap-2 pt-1 border-t border-black/5">
-              {/* Oprec Toggle */}
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[#1A201C] font-semibold text-[11px]">
-                  Oprec Reguler
-                </span>
-                <Button
-                  variant={isOprecActive ? "primary" : "secondary"}
-                  size="sm"
-                  className="text-[11px] h-7 px-2.5"
-                  isLoading={toggleMutation.isPending}
-                  onClick={() =>
-                    toggleMutation.mutate({
-                      isActive: !isOprecActive,
-                      isGoldenCandidateActive: !isOprecActive ? false : isGoldenActive,
-                      currentBatch: batchNameInput || settingData?.currentBatch,
-                    })
-                  }
-                  leftIcon={
-                    isOprecActive ? (
-                      <ToggleRight className="w-3.5 h-3.5" />
-                    ) : (
-                      <ToggleLeft className="w-3.5 h-3.5" />
-                    )
-                  }
-                >
-                  {isOprecActive ? "Aktif" : "Buka"}
-                </Button>
-              </div>
-
-              {/* Golden Candidate Toggle */}
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-amber-900 font-semibold text-[11px] flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-600" />
-                  Golden Ticket
-                </span>
-                <Button
-                  variant={isGoldenActive ? "primary" : "secondary"}
-                  size="sm"
-                  className={cn(
-                    "text-[11px] h-7 px-2.5",
-                    isGoldenActive
-                      ? "bg-amber-600 hover:bg-amber-700 text-white"
-                      : "text-amber-900 border-amber-500/30"
-                  )}
-                  isLoading={toggleMutation.isPending}
-                  onClick={() =>
-                    toggleMutation.mutate({
-                      isGoldenCandidateActive: !isGoldenActive,
-                      isActive: !isGoldenActive ? false : isOprecActive,
-                      currentBatch: batchNameInput || settingData?.currentBatch,
-                    })
-                  }
-                  leftIcon={
-                    isGoldenActive ? (
-                      <ToggleRight className="w-3.5 h-3.5" />
-                    ) : (
-                      <ToggleLeft className="w-3.5 h-3.5" />
-                    )
-                  }
-                >
-                  {isGoldenActive ? "Aktif" : "Buka"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Collapsible Edit Batch Details */}
-            <button
-              type="button"
-              onClick={() => setIsOprecExpanded(!isOprecExpanded)}
-              className="flex items-center justify-center gap-1 text-[10px] text-[#274432] font-semibold hover:underline pt-1 cursor-pointer"
-            >
-              <span>{isOprecExpanded ? "Tutup Pengaturan" : "Ubah Nama Batch"}</span>
-              {isOprecExpanded ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
-              )}
-            </button>
-
-            {isOprecExpanded && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-black/5 animate-in fade-in">
-                <Input
-                  value={batchNameInput}
-                  onChange={(e) => setBatchNameInput(e.target.value)}
-                  placeholder="Nama Batch Baru"
-                  className="text-xs py-2"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs"
-                  isLoading={toggleMutation.isPending}
-                  onClick={() =>
-                    toggleMutation.mutate({
-                      isActive: isOprecActive,
-                      currentBatch: batchNameInput,
-                    })
-                  }
-                >
-                  Simpan Nama Batch
-                </Button>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Bottom Area: Export, Admin Info, Logout - Fixed at bottom */}

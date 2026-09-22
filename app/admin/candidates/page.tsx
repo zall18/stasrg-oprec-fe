@@ -32,7 +32,7 @@ export default function AdminCandidatesPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"ALL" | "GOLDEN" | "OPREC">("ALL");
+  const [activeTab, setActiveTab] = useState<"OPREC" | "GOLDEN">("OPREC");
   const [statusFilter, setStatusFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -69,8 +69,7 @@ export default function AdminCandidatesPage() {
     search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     roleInterest: roleFilter || undefined,
-    isGolden:
-      activeTab === "GOLDEN" ? "true" : activeTab === "OPREC" ? "false" : undefined,
+    isGolden: activeTab === "GOLDEN" ? "true" : "false",
     page,
     limit,
   };
@@ -185,20 +184,6 @@ export default function AdminCandidatesPage() {
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-200" />
             Golden Candidate
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("ALL");
-              setPage(1);
-            }}
-            className={cn(
-              "shrink-0 px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-full text-xs font-semibold transition-all cursor-pointer",
-              activeTab === "ALL"
-                ? "bg-[#1A201C] text-white shadow-xs"
-                : "text-[#64746A] hover:text-[#1A201C]"
-            )}
-          >
-            Semua ({meta.total || candidates.length})
           </button>
         </div>
       </div>

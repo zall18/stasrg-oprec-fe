@@ -18,7 +18,7 @@ export const registerSchema = z.object({
   password: z
     .string({ required_error: "Password wajib diisi" })
     .min(6, "Password minimal 6 karakter"),
-  role: z.enum(["CANDIDATE", "ADMIN"]),
+  role: z.enum(["CANDIDATE", "ADMIN"]).default("CANDIDATE"),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

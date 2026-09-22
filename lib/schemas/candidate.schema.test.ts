@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   candidateProfileSchema,
   fileUploadSchema,
+  updateStatusSchema,
   MAX_FILE_SIZE,
 } from "./candidate.schema";
 
@@ -66,5 +67,13 @@ describe("lib/schemas/candidate.schema", () => {
     if (!result.success) {
       expect(result.error.issues[0].message).toContain("5MB");
     }
+  });
+
+  it("validates updateStatusSchema with DITOLAK", () => {
+    const valid = updateStatusSchema.safeParse({ status: "DITOLAK" });
+    expect(valid.success).toBe(true);
+
+    const invalid = updateStatusSchema.safeParse({ status: "UNKNOWN_STATUS" });
+    expect(invalid.success).toBe(false);
   });
 });

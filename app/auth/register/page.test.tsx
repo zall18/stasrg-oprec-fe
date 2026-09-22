@@ -22,7 +22,6 @@ describe("app/auth/register", () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Email Institusi/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Kata Sandi")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Tipe Akun/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Daftar Sekarang/i })
     ).toBeInTheDocument();

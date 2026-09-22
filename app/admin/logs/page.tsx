@@ -10,10 +10,8 @@ import {
   Activity,
   ShieldCheck,
   Clock,
-  User,
   ChevronLeft,
   ChevronRight,
-  Filter,
 } from "lucide-react";
 
 interface ActivityLogItem {
@@ -66,6 +64,54 @@ export default function AdminActivityLogsPage() {
     if (action.includes("REJECT") || action.includes("CANCEL")) return "DITOLAK";
     if (action.includes("GOLDEN")) return "GOLDEN";
     return "DEFAULT";
+  };
+
+  const formatLogDetails = (rawDetails?: string | null): string => {
+    if (!rawDetails) return "-";
+    const str = String(rawDetails).trim();
+    if (!str) return "-";
+
+    if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) {
+      try {
+        const parsed = JSON.parse(str);
+        if (typeof parsed === "object" && parsed !== null) {
+          const parts: string[] = [];
+
+          if (parsed.status) parts.push(`Status: ${parsed.status}`);
+          if (parsed.assignedProject) parts.push(`Proyek: ${parsed.assignedProject}`);
+          if (parsed.batchName || parsed.batch) parts.push(`Batch: ${parsed.batchName || parsed.batch}`);
+          if (parsed.email) parts.push(`Email: ${parsed.email}`);
+          if (parsed.title) parts.push(`Judul: "${parsed.title}"`);
+          if (parsed.candidateName) parts.push(`Kandidat: ${parsed.candidateName}`);
+          if (parsed.count !== undefined) parts.push(`Jumlah: ${parsed.count}`);
+          if (parsed.datetime) {
+            const dateStr = new Date(parsed.datetime).toLocaleString("id-ID", {
+              dateStyle: "short",
+              timeStyle: "short",
+            });
+            parts.push(`Waktu: ${dateStr}`);
+          }
+          if (parsed.type) parts.push(`Tipe: ${parsed.type}`);
+          if (parsed.reason) parts.push(`Alasan: ${parsed.reason}`);
+          if (parsed.message) parts.push(String(parsed.message));
+
+          if (parts.length > 0) {
+            return parts.join(" • ");
+          }
+
+          const entries = Object.entries(parsed)
+            .filter(([, v]) => typeof v === "string" || typeof v === "number" || typeof v === "boolean")
+            .map(([k, v]) => `${k}: ${v}`);
+          if (entries.length > 0) {
+            return entries.join(" • ");
+          }
+        }
+      } catch {
+        // Not valid JSON, return original str
+      }
+    }
+
+    return str;
   };
 
   return (
@@ -162,8 +208,10 @@ export default function AdminActivityLogsPage() {
                     <td className="py-4 px-5 text-[#64746A]">
                       {log.targetType || "-"}
                     </td>
-                    <td className="py-4 px-5 text-[#1A201C] max-w-xs truncate">
-                      {log.details || "-"}
+                    <td className="py-4 px-5 text-[#1A201C] max-w-sm" title={log.details || ""}>
+                      <span className="line-clamp-2 leading-relaxed">
+                        {formatLogDetails(log.details, log.action)}
+                      </span>
                     </td>
                   </tr>
                 ))

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { useToast } from "@/components/ui/toast";
@@ -43,8 +44,24 @@ interface AdminInterview {
 }
 
 export default function AdminInterviewsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20 text-xs text-[#64746A]">
+          Memuat halaman jadwal wawancara...
+        </div>
+      }
+    >
+      <AdminInterviewsContent />
+    </Suspense>
+  );
+}
+
+function AdminInterviewsContent() {
   const toast = useToast();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const urlCandidateId = searchParams?.get("candidateId");
 
   const [statusFilter, setStatusFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,6 +76,19 @@ export default function AdminInterviewsPage() {
   const [link, setLink] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Auto-select candidate and open modal if navigated from candidate detail page
+  useEffect(() => {
+    if (urlCandidateId) {
+      setCandidateId(urlCandidateId);
+      setDatetime(new Date().toISOString().slice(0, 16));
+      setType("ONLINE");
+      setLink("https://meet.google.com/");
+      setLocation("");
+      setNotes("");
+      setIsModalOpen(true);
+    }
+  }, [urlCandidateId]);
 
   // Query interviews
   const { data: interviewsData, isLoading } = useQuery({
@@ -76,16 +106,39 @@ export default function AdminInterviewsPage() {
     },
   });
 
-  // Query candidates for select dropdown
+  // Query candidates for select dropdown (fetch both regular and golden candidates)
   const { data: candidatesData } = useQuery({
     queryKey: ["adminCandidateOptions"],
     queryFn: async () => {
       try {
-        const res = await api.getCandidates({ limit: 100 });
-        const list = Array.isArray(res.data?.data)
-          ? res.data.data
-          : res.data?.data?.candidates || [];
-        return list;
+        const [regRes, goldenRes] = await Promise.allSettled([
+          api.getCandidates({ limit: 100, isGolden: "false" }),
+          api.getCandidates({ limit: 100, isGolden: "true" }),
+        ]);
+
+        const regList =
+          regRes.status === "fulfilled"
+            ? Array.isArray(regRes.value.data?.data)
+              ? regRes.value.data.data
+              : regRes.value.data?.data?.candidates || []
+            : [];
+
+        const goldenList =
+          goldenRes.status === "fulfilled"
+            ? Array.isArray(goldenRes.value.data?.data)
+              ? goldenRes.value.data.data
+              : goldenRes.value.data?.data?.candidates || []
+            : [];
+
+        const map = new Map<string, any>();
+        regList.forEach((c: any) =>
+          map.set(c.id, { ...c, isGoldenCandidate: false })
+        );
+        goldenList.forEach((c: any) =>
+          map.set(c.id, { ...c, isGoldenCandidate: true })
+        );
+
+        return Array.from(map.values());
       } catch {
         return [];
       }
@@ -377,12 +430,19 @@ export default function AdminInterviewsPage() {
                     {candidatesData && candidatesData.length > 0 ? (
                       candidatesData.map((c: any) => (
                         <option key={c.id} value={c.id}>
-                          {c.fullName || c.email} ({c.universitas || "-"})
+                          {c.fullName || c.email} ({c.universitas || "-"}){" "}
+                          {c.isGoldenCandidate ? "★ [Golden Ticket]" : ""}
                         </option>
                       ))
                     ) : (
                       <option value="">Tidak ada kandidat</option>
                     )}
+                    {urlCandidateId &&
+                      !candidatesData?.some((c: any) => c.id === urlCandidateId) && (
+                        <option value={urlCandidateId}>
+                          Kandidat Terpilih ({urlCandidateId.slice(0, 8)}...)
+                        </option>
+                      )}
                   </select>
                 </div>
               )}
