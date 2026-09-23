@@ -33,6 +33,7 @@ import {
   X,
   Loader2,
   CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ interface AdminItem {
   id: string;
   email: string;
   role: "ADMIN";
+  isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -233,8 +235,29 @@ export default function AdminManagementPage() {
             <span className="text-[11px] font-semibold text-[#64746A] uppercase tracking-wider">
               Total Administrator
             </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-black text-[#1A201C]">
+                {isLoading ? "-" : adminsList.length}
+              </span>
+              <span className="text-[11px] text-emerald-700 font-medium">
+                ({adminsList.filter((a) => a.isActive !== false).length} Aktif)
+              </span>
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-800 flex items-center justify-center">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-[#64746A] uppercase tracking-wider">
+              Menunggu Konfirmasi
+            </span>
             <span className="text-2xl font-black text-[#1A201C]">
-              {isLoading ? "-" : adminsList.length}
+              {isLoading
+                ? "-"
+                : adminsList.filter((a) => a.isActive === false).length}
             </span>
           </div>
         </GlassCard>
@@ -249,20 +272,6 @@ export default function AdminManagementPage() {
             </span>
             <span className="text-xs font-bold text-[#1A201C] truncate" title={currentUser?.email}>
               {currentUser?.email || "Admin Terverifikasi"}
-            </span>
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-4 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-800 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-semibold text-[#64746A] uppercase tracking-wider">
-              Sistem Keamanan
-            </span>
-            <span className="text-xs font-bold text-[#1A201C]">
-              Anti Self-Deletion Aktif
             </span>
           </div>
         </GlassCard>
@@ -320,6 +329,7 @@ export default function AdminManagementPage() {
                 <tr>
                   <th className="py-3.5 px-4 sm:px-6">Administrator</th>
                   <th className="py-3.5 px-4">Hak Akses</th>
+                  <th className="py-3.5 px-4">Status Akun</th>
                   <th className="py-3.5 px-4 hidden md:table-cell">Terdaftar Pada</th>
                   <th className="py-3.5 px-4 text-right">Aksi Manajemen</th>
                 </tr>
@@ -368,6 +378,27 @@ export default function AdminManagementPage() {
                         <Badge variant="GOLDEN" className="text-[10px] font-bold">
                           ADMIN
                         </Badge>
+                      </td>
+
+                      {/* Status Akun */}
+                      <td className="py-4 px-4">
+                        {admin.isActive === false ? (
+                          <Badge
+                            variant="PENDING"
+                            className="text-[10px] font-bold py-0.5 px-2 bg-amber-50 text-amber-800 border-amber-300 flex items-center gap-1 w-fit"
+                          >
+                            <Clock className="w-3 h-3 text-amber-600 animate-pulse" />
+                            Menunggu Konfirmasi
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="DITERIMA"
+                            className="text-[10px] font-bold py-0.5 px-2 flex items-center gap-1 w-fit"
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Aktif
+                          </Badge>
+                        )}
                       </td>
 
                       {/* Created At */}
@@ -476,6 +507,18 @@ export default function AdminManagementPage() {
               onSubmit={handleSubmitCreate(onSubmitCreate)}
               className="flex flex-col gap-4"
             >
+              <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-950">
+                <Mail className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5 leading-relaxed">
+                  <strong className="font-semibold text-emerald-950 text-xs">
+                    Undangan Resmi & Proteksi Akun
+                  </strong>
+                  <span className="text-[11px] text-emerald-800">
+                    Akun baru otomatis berstatus <em>Menunggu Konfirmasi</em> demi keamanan. Email undangan resmi berisi kredensial akses dan tombol aktivasi CTA (berlaku 24 jam) akan langsung dikirimkan ke email target.
+                  </span>
+                </div>
+              </div>
+
               <Input
                 label="Email Administrator"
                 type="email"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -12,29 +12,80 @@ import { useToast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
-import { Mail, Lock, ArrowRight, ArrowLeft, UserCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  ArrowLeft,
+  UserCheck,
+  KeyRound,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const toast = useToast();
   const setAuth = useAuthStore((state) => state.setAuth);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema) as any,
     defaultValues: {
       role: "CANDIDATE",
+      otp: "",
     },
   });
+
+  // Cooldown countdown timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (otpCooldown > 0) {
+      timer = setInterval(() => {
+        setOtpCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpCooldown]);
+
+  const handleSendOtp = async () => {
+    const email = getValues("email");
+    if (!email || !email.includes("@")) {
+      toast.error("Masukkan alamat email yang valid terlebih dahulu.");
+      return;
+    }
+
+    setIsSendingOtp(true);
+    try {
+      await api.sendOtp({ email: email.trim(), purpose: "REGISTRATION" });
+      setIsOtpSent(true);
+      setOtpCooldown(60);
+      toast.success("Kode OTP verifikasi telah dikirim ke email Anda!");
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengirimkan kode OTP");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
 
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
     try {
-      const res = await api.register(data);
+      const res = await api.register({
+        email: data.email.trim(),
+        password: data.password,
+        otp: data.otp.trim(),
+        role: "CANDIDATE",
+      });
       const { user, token } = res.data?.data || {};
 
       if (!token || !user) {
@@ -42,7 +93,7 @@ export default function RegisterPage() {
       }
 
       setAuth(user, token);
-      toast.success("Akun berhasil dibuat!");
+      toast.success("Akun berhasil dibuat dan diverifikasi!");
 
       if (user.role === "ADMIN") {
         router.push("/admin/dashboard");
@@ -78,20 +129,70 @@ export default function RegisterPage() {
                 Registrasi Akun
               </h1>
               <p className="text-xs text-[#64746A]">
-                Buat akun untuk mengajukan berkas Golden Candidate atau Oprec.
+                Daftar akun kandidat resmi STAS-RG dengan verifikasi email aktif.
               </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-              <Input
-                label="Email Institusi / Pribadi"
-                type="email"
-                placeholder="nama@email.com"
-                leftIcon={<Mail className="w-4 h-4" />}
-                error={errors.email?.message}
-                {...register("email")}
-              />
+              {/* Email Field with Send OTP Button */}
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Email Institusi / Pribadi"
+                  type="email"
+                  placeholder="nama@email.com"
+                  leftIcon={<Mail className="w-4 h-4" />}
+                  error={errors.email?.message}
+                  {...register("email")}
+                />
+              </div>
 
+              {/* OTP Input Field with Cooldown Resend */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-[#1A201C] flex items-center gap-1">
+                    <KeyRound className="w-3.5 h-3.5 text-[#274432]" />
+                    <span>Kode Verifikasi OTP *</span>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={isSendingOtp || otpCooldown > 0}
+                    onClick={handleSendOtp}
+                    className={cn(
+                      "text-xs font-semibold transition-colors cursor-pointer",
+                      otpCooldown > 0
+                        ? "text-[#64746A] cursor-not-allowed"
+                        : "text-[#274432] hover:underline"
+                    )}
+                  >
+                    {isSendingOtp
+                      ? "Mengirim..."
+                      : otpCooldown > 0
+                      ? `Kirim ulang (${otpCooldown}s)`
+                      : isOtpSent
+                      ? "Kirim Ulang OTP"
+                      : "Kirim Kode OTP"}
+                  </button>
+                </div>
+                <Input
+                  type="text"
+                  maxLength={6}
+                  placeholder="Masukkan 6 digit kode OTP"
+                  leftIcon={<KeyRound className="w-4 h-4" />}
+                  error={errors.otp?.message}
+                  {...register("otp")}
+                  className="tracking-widest font-mono text-sm"
+                />
+                {isOtpSent && (
+                  <p className="text-[11px] text-emerald-800 bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-xl flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                    <span>
+                      Kode 6 digit telah dikirim ke email. Berlaku selama 5 menit.
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* Password Field */}
               <Input
                 label="Kata Sandi"
                 type="password"
@@ -133,22 +234,26 @@ export default function RegisterPage() {
           <div className="flex items-center gap-2">
             <UserCheck className="w-5 h-5 text-emerald-400" />
             <span className="text-xs font-semibold tracking-wider uppercase text-emerald-300">
-              Pendaftaran Resmi
+              Pendaftaran Resmi STAS-RG
             </span>
           </div>
 
           <div className="flex flex-col gap-4 z-10">
             <h2 className="text-3xl font-extrabold leading-snug">
-              Jadilah Bagian dari Inovasi Riset
+              Smart Transportation & Autonomous Systems
             </h2>
-            <p className="text-xs text-white/80 leading-relaxed">
-              Daftarkan profil akademik, lampirkan bukti karya portofolio Anda, dan
-              dapatkan kesempatan magang atau riset di STAS-RG.
+            <p className="text-sm text-emerald-100/80 leading-relaxed">
+              Bergabunglah dengan laboratorium riset kendaraan otonom dan sistem transportasi cerdas. Buka peluang riset masa depan dan portofolio profesional Anda bersama kami.
             </p>
+
+            <div className="flex items-center gap-2 text-xs text-emerald-200 bg-white/10 p-3 rounded-2xl border border-white/10 backdrop-blur-xs">
+              <Sparkles className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>Verifikasi kode OTP memastikan keamanan data dan keabsahan akun Anda.</span>
+            </div>
           </div>
 
-          <div className="pt-4 border-t border-white/15 text-[11px] text-white/60">
-            STAS-RG • Data Pribadi Dijamin Kerahasiaannya
+          <div className="text-[11px] text-emerald-200/60 z-10">
+            &copy; {new Date().getFullYear()} STAS-RG. Hak Cipta Dilindungi.
           </div>
         </div>
       </div>

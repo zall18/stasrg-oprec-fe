@@ -1,7 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-export const BASE_API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://stas-rg-oprec-be-production.up.railway.app/api";
+export const BASE_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
 
 export const apiClient = axios.create({
   baseURL: BASE_API_URL,
@@ -59,8 +58,30 @@ export const api = {
   // Auth
   login: (data: { email: string; password: string }) =>
     apiClient.post("/auth/login", data),
-  register: (data: { email: string; password: string; role?: string }) =>
-    apiClient.post("/auth/register", data),
+  register: (data: {
+    email: string;
+    password: string;
+    role?: string;
+    otp?: string;
+  }) => apiClient.post("/auth/register", data),
+  sendOtp: (data: {
+    email: string;
+    purpose?: "REGISTRATION" | "PASSWORD_RESET";
+  }) => apiClient.post("/auth/send-otp", data),
+  verifyOtp: (data: {
+    email: string;
+    otp: string;
+    purpose?: "REGISTRATION" | "PASSWORD_RESET";
+  }) => apiClient.post("/auth/verify-otp", data),
+  forgotPassword: (data: { email: string }) =>
+    apiClient.post("/auth/forgot-password", data),
+  resetPassword: (data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }) => apiClient.post("/auth/reset-password", data),
+  confirmAdmin: (token: string) =>
+    apiClient.post("/auth/confirm-admin", { token }),
 
   // Candidate
   getCandidateProfile: () => apiClient.get("/candidate/profile"),
