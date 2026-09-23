@@ -66,7 +66,7 @@ export default function AdminActivityLogsPage() {
     return "DEFAULT";
   };
 
-  const formatLogDetails = (rawDetails?: string | null): string => {
+  const formatLogDetails = (rawDetails?: string | null, _action?: string): string => {
     if (!rawDetails) return "-";
     const str = String(rawDetails).trim();
     if (!str) return "-";

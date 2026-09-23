@@ -131,19 +131,105 @@ function AdminInterviewsContent() {
             : [];
 
         const map = new Map<string, any>();
-        regList.forEach((c: any) =>
-          map.set(c.id, { ...c, isGoldenCandidate: false })
-        );
-        goldenList.forEach((c: any) =>
-          map.set(c.id, { ...c, isGoldenCandidate: true })
-        );
 
-        return Array.from(map.values());
+        const processItem = (item: any, isGolden: boolean) => {
+          if (!item) return;
+          const cand = item.candidate || item.profile || item;
+          const userObj = cand.user || item.user || {};
+          const profileObj = cand.profile || item.profile || {};
+
+          // Resolve true Candidate ID
+          const resolvedId =
+            cand.id ||
+            item.candidateId ||
+            item.userId ||
+            userObj.id ||
+            item.id;
+
+          const fullName =
+            cand.fullName ||
+            profileObj.fullName ||
+            item.fullName ||
+            cand.name ||
+            userObj.fullName ||
+            userObj.name ||
+            userObj.email ||
+            cand.email ||
+            item.email ||
+            "Kandidat";
+
+          const universitas =
+            cand.universitas ||
+            profileObj.universitas ||
+            item.universitas ||
+            cand.university ||
+            profileObj.university ||
+            item.university ||
+            "";
+
+          const email =
+            userObj.email ||
+            cand.email ||
+            item.email ||
+            "";
+
+          const isGoldenCandidate = Boolean(
+            isGolden ||
+            cand.isGoldenCandidate ||
+            cand.isGolden ||
+            item.isGoldenCandidate ||
+            item.isGolden ||
+            item.goldenApplication ||
+            cand.goldenApplication
+          );
+
+          const record = {
+            id: resolvedId,
+            altId: item.id !== resolvedId ? item.id : undefined,
+            registrationId: item.candidateId ? item.id : undefined,
+            fullName,
+            universitas,
+            email,
+            isGoldenCandidate,
+            raw: item,
+          };
+
+          map.set(resolvedId, record);
+          if (item.id && item.id !== resolvedId) {
+            map.set(item.id, record);
+          }
+        };
+
+        regList.forEach((c: any) => processItem(c, false));
+        goldenList.forEach((c: any) => processItem(c, true));
+
+        // Deduplicate distinct candidates for dropdown
+        const uniqueCandidates: any[] = [];
+        const seen = new Set<string>();
+        for (const candidate of map.values()) {
+          if (!seen.has(candidate.id)) {
+            seen.add(candidate.id);
+            uniqueCandidates.push(candidate);
+          }
+        }
+
+        return uniqueCandidates;
       } catch {
         return [];
       }
     },
   });
+
+  const candidateLookup = React.useMemo(() => {
+    const lookup = new Map<string, any>();
+    if (!candidatesData) return lookup;
+    candidatesData.forEach((c: any) => {
+      lookup.set(c.id, c);
+      if (c.altId) lookup.set(c.altId, c);
+      if (c.registrationId) lookup.set(c.registrationId, c);
+    });
+    return lookup;
+  }, [candidatesData]);
 
   const openCreateModal = () => {
     setEditingInterview(null);
@@ -289,10 +375,30 @@ function AdminInterviewsContent() {
           {interviews.map((item) => {
             const isOnline = item.type === "ONLINE";
             const dateObj = new Date(item.datetime);
+
+            const candRel: any = item.candidate || {};
+            const candProfile = candRel.profile || {};
+            const candUser = candRel.user || {};
+            const lookup =
+              candidateLookup.get(item.candidateId) ||
+              (candRel.id ? candidateLookup.get(candRel.id) : undefined);
+
             const candName =
-              item.candidate?.fullName ||
-              item.candidate?.user?.email ||
-              `Kandidat #${item.candidateId?.slice(0, 8)}`;
+              candRel.fullName ||
+              candProfile.fullName ||
+              (candRel as any).name ||
+              lookup?.fullName ||
+              candUser.fullName ||
+              candUser.email ||
+              (candRel as any).email ||
+              (item.candidateId ? `Kandidat #${item.candidateId.slice(0, 8)}` : "Kandidat");
+
+            const candUniv =
+              candRel.universitas ||
+              candProfile.universitas ||
+              (candRel as any).university ||
+              lookup?.universitas ||
+              "";
 
             return (
               <GlassCard
@@ -310,7 +416,7 @@ function AdminInterviewsContent() {
                           {candName}
                         </h4>
                         <span className="text-[11px] text-[#64746A] truncate block">
-                          {item.candidate?.universitas || "-"}
+                          {candUniv || (lookup?.isGoldenCandidate ? "Golden Candidate" : "STAS-RG Candidate")}
                         </span>
                       </div>
                     </div>
@@ -363,7 +469,11 @@ function AdminInterviewsContent() {
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-3 border-t border-black/5">
-                  <Link href={`/admin/candidates/${item.candidateId}`}>
+                  <Link
+                    href={`/admin/candidates/${lookup?.id || item.candidateId}?tab=${
+                      lookup?.isGoldenCandidate ? "GOLDEN" : "OPREC"
+                    }`}
+                  >
                     <Button variant="ghost" size="sm" className="text-xs">
                       Profil Kandidat
                     </Button>
@@ -430,7 +540,7 @@ function AdminInterviewsContent() {
                     {candidatesData && candidatesData.length > 0 ? (
                       candidatesData.map((c: any) => (
                         <option key={c.id} value={c.id}>
-                          {c.fullName || c.email} ({c.universitas || "-"}){" "}
+                          {c.fullName}{c.universitas ? ` (${c.universitas})` : ""}{" "}
                           {c.isGoldenCandidate ? "★ [Golden Ticket]" : ""}
                         </option>
                       ))
@@ -438,9 +548,12 @@ function AdminInterviewsContent() {
                       <option value="">Tidak ada kandidat</option>
                     )}
                     {urlCandidateId &&
-                      !candidatesData?.some((c: any) => c.id === urlCandidateId) && (
+                      !candidatesData?.some(
+                        (c: any) => c.id === urlCandidateId || c.altId === urlCandidateId
+                      ) && (
                         <option value={urlCandidateId}>
-                          Kandidat Terpilih ({urlCandidateId.slice(0, 8)}...)
+                          {candidateLookup.get(urlCandidateId)?.fullName ||
+                            `Kandidat Terpilih (${urlCandidateId.slice(0, 8)}...)`}
                         </option>
                       )}
                   </select>

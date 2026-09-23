@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { useToast } from "@/components/ui/toast";
@@ -33,8 +33,24 @@ import {
 } from "lucide-react";
 
 export default function CandidateDetailPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20 text-xs text-[#64746A]">
+          Memuat detail pendaftar...
+        </div>
+      }
+    >
+      <CandidateDetailContent />
+    </React.Suspense>
+  );
+}
+
+function CandidateDetailContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const candidateId = params.id as string;
+  const tabParam = searchParams?.get("tab")?.toUpperCase() as "OPREC" | "GOLDEN" | undefined;
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -60,7 +76,14 @@ export default function CandidateDetailPage() {
   const goldenApp = candidate.goldenApplication || profile?.goldenApplication || (candidate.goldenApplications ? candidate.goldenApplications[0] : null);
   const currentGoldenStatus = goldenApp?.status || "PENDING";
 
-  const isGolden = Boolean(
+  const hasOprec = Boolean(
+    oprecRecord.id ||
+    candidate.registration ||
+    (candidate.oprecRecords && candidate.oprecRecords.length > 0) ||
+    candidate.status
+  );
+
+  const hasGolden = Boolean(
     profile?.isGoldenCandidate ||
     profile?.isGolden ||
     candidate?.isGoldenCandidate ||
@@ -68,11 +91,28 @@ export default function CandidateDetailPage() {
     goldenApp
   );
 
+  const [activeMode, setActiveMode] = useState<"OPREC" | "GOLDEN">(
+    tabParam === "GOLDEN" ? "GOLDEN" : "OPREC"
+  );
+
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [assignedProject, setAssignedProject] = useState<string>("");
   const [selectedGoldenStatus, setSelectedGoldenStatus] = useState<string>("");
   const [isInit, setIsInit] = useState(false);
   const [isMotivationModalOpen, setIsMotivationModalOpen] = useState(false);
+
+  // Sync mode if tab param changes or when data finishes loading
+  React.useEffect(() => {
+    if (tabParam === "GOLDEN") {
+      setActiveMode("GOLDEN");
+    } else if (tabParam === "OPREC") {
+      setActiveMode("OPREC");
+    } else if (rawData) {
+      if (hasGolden && !hasOprec) {
+        setActiveMode("GOLDEN");
+      }
+    }
+  }, [tabParam, rawData, hasGolden, hasOprec]);
 
   // Interview scheduling modal state
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
@@ -203,7 +243,13 @@ export default function CandidateDetailPage() {
               <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#1A201C] break-words">
                 {profile?.fullName || candidate?.user?.email || "Detail Kandidat"}
               </h1>
-              {isGolden && <Badge variant="GOLDEN">★ Golden Ticket</Badge>}
+              {activeMode === "GOLDEN" ? (
+                <Badge variant="GOLDEN">★ Golden Ticket</Badge>
+              ) : hasGolden ? (
+                <Badge variant="DEFAULT" className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px]">
+                  Terdaftar Golden
+                </Badge>
+              ) : null}
             </div>
             <span className="text-xs text-[#64746A] break-words">
               Peminatan: <strong>{profile?.roleInterest || "RISET"}</strong> • Email: {profile?.user?.email || candidate?.email || "-"}
@@ -213,7 +259,7 @@ export default function CandidateDetailPage() {
 
         <Badge
           variant={
-            isGolden
+            activeMode === "GOLDEN"
               ? currentGoldenStatus === "ACCEPTED"
                 ? "GOLDEN"
                 : currentGoldenStatus === "REJECTED"
@@ -223,7 +269,7 @@ export default function CandidateDetailPage() {
           }
           className="self-start sm:self-auto"
         >
-          Tahapan: {isGolden ? currentGoldenStatus : currentStatus}
+          Tahapan ({activeMode === "GOLDEN" ? "Golden" : "Oprec"}): {activeMode === "GOLDEN" ? currentGoldenStatus : currentStatus}
         </Badge>
       </div>
 
@@ -479,14 +525,45 @@ export default function CandidateDetailPage() {
           {/* Section 4: Catatan Internal Admin (Dipindahkan ke kolom utama agar luas & mengisi ruang kosong) */}
           <CandidateNotesSection
             candidateId={candidateId}
-            registrationId={!isGolden && oprecRecord.id ? oprecRecord.id : undefined}
+            registrationId={activeMode === "OPREC" && oprecRecord.id ? oprecRecord.id : undefined}
           />
         </div>
 
         {/* Right Column: Admin Actions & Decisions */}
         <div className="flex flex-col gap-6">
-          {/* Regular Oprec Decision Card (Hanya muncul jika BUKAN Golden Candidate) */}
-          {!isGolden && (
+          {/* Switcher Pill if candidate has both Oprec & Golden records */}
+          {hasOprec && hasGolden && (
+            <div className="p-1 rounded-2xl bg-black/[0.04] border border-black/5 flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setActiveMode("OPREC")}
+                className={cn(
+                  "flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all text-center",
+                  activeMode === "OPREC"
+                    ? "bg-white text-[#274432] shadow-xs"
+                    : "text-[#64746A] hover:text-[#1A201C]"
+                )}
+              >
+                Jalur Oprec Reguler
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveMode("GOLDEN")}
+                className={cn(
+                  "flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1",
+                  activeMode === "GOLDEN"
+                    ? "bg-amber-500 text-white shadow-xs"
+                    : "text-[#64746A] hover:text-[#1A201C]"
+                )}
+              >
+                <Sparkles className="w-3 h-3" />
+                Jalur Golden Ticket
+              </button>
+            </div>
+          )}
+
+          {/* Regular Oprec Decision Card (Hanya muncul jika activeMode === "OPREC") */}
+          {activeMode === "OPREC" && (
             <GlassCard className="p-4 sm:p-6 flex flex-col gap-5 border-white/60">
               <div className="flex items-center gap-2.5 border-b border-black/5 pb-3">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-800">
@@ -538,8 +615,8 @@ export default function CandidateDetailPage() {
             </GlassCard>
           )}
 
-          {/* Golden Candidate Decision Card */}
-          {(isGolden || goldenApp) && (
+          {/* Golden Candidate Decision Card (Hanya muncul jika activeMode === "GOLDEN") */}
+          {activeMode === "GOLDEN" && (
             <GlassCard className="p-4 sm:p-6 flex flex-col gap-4 border-amber-200/50 bg-amber-50/20">
               <div className="flex items-center justify-between border-b border-amber-500/20 pb-3">
                 <div className="flex items-center gap-2">

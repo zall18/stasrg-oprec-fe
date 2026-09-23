@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ui/toast";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "c-123" }),
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn() }),
 }));
 
@@ -125,4 +126,65 @@ describe("app/admin/candidates/[id]", () => {
     // Popup modal should close
     expect(screen.queryByText("Esai Motivasi Riset Kandidat")).not.toBeInTheDocument();
   });
+
+  it("renders mode toggle and allows switching between Oprec decision and Golden decision when candidate has both", async () => {
+    const { api } = await import("@/lib/api/client");
+    vi.mocked(api.getCandidateById).mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          id: "c-dual-123",
+          profile: {
+            fullName: "Citra Kirana",
+            nim: "10203344",
+            universitas: "ITB",
+            programStudi: "Teknik Informatika",
+            roleInterest: "RISET",
+            isGoldenCandidate: true,
+          },
+          registration: {
+            id: "reg-dual-123",
+            status: "WAWANCARA_1",
+          },
+          goldenApplication: {
+            id: "ga-dual-123",
+            motivasi: "Motivasi riset mendalam",
+            pencapaian: "Finalis Gemastik",
+            status: "ADMINISTRATIVE",
+          },
+        },
+      },
+    } as any);
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <CandidateDetailPage />
+        </ToastProvider>
+      </QueryClientProvider>
+    );
+
+    // Initial default is Oprec mode
+    expect(await screen.findByText("Aksi Keputusan Seleksi")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Jalur Oprec Reguler/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Jalur Golden Ticket/i })).toBeInTheDocument();
+    expect(screen.queryByText("Keputusan Golden Ticket")).not.toBeInTheDocument();
+
+    // Click to switch to Golden decision
+    fireEvent.click(screen.getByRole("button", { name: /Jalur Golden Ticket/i }));
+
+    // Now Golden decision should be visible and Oprec decision hidden
+    expect(screen.getByText("Keputusan Golden Ticket")).toBeInTheDocument();
+    expect(screen.queryByText("Aksi Keputusan Seleksi")).not.toBeInTheDocument();
+
+    // Click to switch back to Oprec decision
+    fireEvent.click(screen.getByRole("button", { name: /Jalur Oprec Reguler/i }));
+    expect(screen.getByText("Aksi Keputusan Seleksi")).toBeInTheDocument();
+    expect(screen.queryByText("Keputusan Golden Ticket")).not.toBeInTheDocument();
+  });
 });
+

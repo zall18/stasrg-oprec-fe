@@ -69,4 +69,65 @@ describe("app/admin/interviews", () => {
       expect(screen.getByText("UGM")).toBeInTheDocument();
     });
   });
+
+  it("formats candidate name and university in modal select options without solitary dash", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    (api.getAdminInterviews as any).mockResolvedValue({
+      data: { success: true, data: [] },
+    });
+    (api.getCandidates as any).mockImplementation((params: any) => {
+      if (params?.isGolden === "true") {
+        return Promise.resolve({
+          data: {
+            success: true,
+            data: [
+              {
+                id: "ga-101",
+                candidateId: "cand-golden-1",
+                candidate: {
+                  id: "cand-golden-1",
+                  fullName: "Dewi Lestari",
+                  universitas: "Universitas Indonesia",
+                  user: { email: "dewi@ui.ac.id" },
+                },
+                goldenApplication: { status: "ACCEPTED" },
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({
+        data: {
+          success: true,
+          data: [
+            {
+              id: "reg-101",
+              candidateId: "cand-reg-1",
+              candidate: {
+                id: "cand-reg-1",
+                fullName: "Budi Santoso",
+                universitas: "ITB",
+                user: { email: "budi@itb.ac.id" },
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    renderWithClient(<AdminInterviewsPage />);
+
+    // Open create modal
+    const createBtn = await screen.findByRole("button", { name: /Buat Jadwal Wawancara/i });
+    fireEvent.click(createBtn);
+
+    // Verify modal candidate select options
+    await waitFor(() => {
+      expect(screen.getByText(/Budi Santoso \(ITB\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dewi Lestari \(Universitas Indonesia\) ★ \[Golden Ticket\]/i)).toBeInTheDocument();
+      // Ensure there are no empty dash options like " (-)"
+      expect(screen.queryByText(/^\s*\(-?\)\s*$/)).not.toBeInTheDocument();
+    });
+  });
 });
+

@@ -534,7 +534,7 @@ export default function AdminCandidatesPage() {
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <Link href={`/admin/candidates/${cand.id || item.id}`}>
+                        <Link href={`/admin/candidates/${cand.id || item.id}?tab=GOLDEN`}>
                           <Button
                             variant="secondary"
                             size="sm"
@@ -652,7 +652,7 @@ export default function AdminCandidatesPage() {
                         <Badge variant={status}>{status}</Badge>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <Link href={`/admin/candidates/${cand.id || item.id}`}>
+                        <Link href={`/admin/candidates/${cand.id || item.id}?tab=OPREC`}>
                           <Button
                             variant="secondary"
                             size="sm"
