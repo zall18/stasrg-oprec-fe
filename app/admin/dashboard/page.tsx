@@ -40,16 +40,29 @@ export default function AdminDashboardPage() {
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  // Stats Query
+  // Time filter states (Daily, Weekly, Monthly, Yearly, Custom)
+  const [timePeriod, setTimePeriod] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
+  // Stats Query with Time Filter
   const {
     data: statsData,
     isLoading: isLoadingStats,
     refetch: refetchStats,
     isFetching: isFetchingStats,
   } = useQuery({
-    queryKey: ["adminStats"],
+    queryKey: ["adminStats", timePeriod, startDate, endDate],
     queryFn: async () => {
-      const res = await api.getDashboardStats();
+      const params: { period?: string; startDate?: string; endDate?: string } = {};
+      if (timePeriod && timePeriod !== "custom") {
+        params.period = timePeriod;
+      }
+      if (timePeriod === "custom") {
+        if (startDate) params.startDate = new Date(startDate).toISOString();
+        if (endDate) params.endDate = new Date(endDate).toISOString();
+      }
+      const res = await api.getDashboardStats(params);
       return res.data?.data;
     },
   });
@@ -133,6 +146,60 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
+      {/* Filter Waktu Dashboard (Harian, Mingguan, Bulanan, Tahunan, Kustom) */}
+      <GlassCard className="p-3.5 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-white/60">
+        <div className="flex flex-wrap items-center gap-2">
+          <Clock className="w-4 h-4 text-[#274432] shrink-0" />
+          <span className="text-xs font-bold text-[#1A201C] mr-1">
+            Filter Rentang Waktu:
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {[
+              { id: "", label: "Semua Waktu" },
+              { id: "daily", label: "Hari Ini" },
+              { id: "weekly", label: "Minggu Ini" },
+              { id: "monthly", label: "Bulan Ini" },
+              { id: "yearly", label: "Tahun Ini" },
+              { id: "custom", label: "Kustom Tanggal" },
+            ].map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setTimePeriod(p.id)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer",
+                  timePeriod === p.id
+                    ? "bg-[#274432] text-white shadow-xs"
+                    : "bg-white/60 text-[#64746A] hover:bg-white hover:text-[#1A201C] border border-black/5"
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Date Range Picker Inputs */}
+        {timePeriod === "custom" && (
+          <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-black/5 animate-in fade-in duration-150">
+            <span className="text-[11px] text-[#64746A]">Dari:</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-2.5 py-1 text-xs rounded-xl bg-white border border-black/10 text-[#1A201C] outline-hidden"
+            />
+            <span className="text-[11px] text-[#64746A]">s/d</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-2.5 py-1 text-xs rounded-xl bg-white border border-black/10 text-[#1A201C] outline-hidden"
+            />
+          </div>
+        )}
+      </GlassCard>
+
       {/* Top Stat Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         <GlassCard className="p-4 sm:p-6 flex flex-col gap-2">
@@ -209,9 +276,24 @@ export default function AdminDashboardPage() {
         {/* Status Distribution */}
         <GlassCard className="p-4 sm:p-6 lg:col-span-2 flex flex-col gap-5">
           <div className="flex items-center justify-between border-b border-black/5 pb-3">
-            <h2 className="text-sm font-bold text-[#1A201C]">
-              Sebaran Tahapan Seleksi Pelamar
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-[#1A201C]">
+                Sebaran Tahapan Seleksi Pelamar
+              </h2>
+              {timePeriod && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  {timePeriod === "daily"
+                    ? "Hari Ini"
+                    : timePeriod === "weekly"
+                    ? "Minggu Ini"
+                    : timePeriod === "monthly"
+                    ? "Bulan Ini"
+                    : timePeriod === "yearly"
+                    ? "Tahun Ini"
+                    : "Rentang Kustom"}
+                </span>
+              )}
+            </div>
             <Link
               href="/admin/candidates"
               className="text-xs font-semibold text-[#274432] hover:underline flex items-center gap-1"

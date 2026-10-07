@@ -111,6 +111,10 @@ export const api = {
   getCandidateInterviews: () => apiClient.get("/candidate/interviews"),
   confirmInterview: (id: string) =>
     apiClient.patch(`/candidate/interviews/${id}/confirm`),
+  rescheduleInterview: (
+    id: string,
+    data: { proposedDatetime: string; reason: string }
+  ) => apiClient.post(`/candidate/interviews/${id}/reschedule`, data),
 
   // Upload
   uploadDocument: (file: File) => {
@@ -124,13 +128,18 @@ export const api = {
   },
 
   // Admin
-  getDashboardStats: (batch?: string) =>
-    apiClient.get("/admin/dashboard/stats", { params: { batch } }),
+  getDashboardStats: (params?: {
+    batch?: string;
+    startDate?: string;
+    endDate?: string;
+    period?: string;
+  }) => apiClient.get("/admin/dashboard/stats", { params }),
   getRecruitmentSetting: () => apiClient.get("/admin/settings/oprec"),
   updateRecruitmentSetting: (data: Record<string, unknown>) =>
     apiClient.patch("/admin/settings/oprec", data),
   getCandidates: (params?: {
     search?: string;
+    nim?: string;
     batch?: string;
     status?: string;
     roleInterest?: string;
@@ -159,6 +168,7 @@ export const api = {
     endDate?: string | null;
     quota?: number;
     isActive?: boolean;
+    isDraft?: boolean;
   }) => apiClient.post("/admin/oprec/batches", data),
   getBatchById: (id: string) => apiClient.get(`/admin/oprec/batches/${id}`),
   updateBatch: (id: string, data: Record<string, unknown>) =>
@@ -196,10 +206,18 @@ export const api = {
     link?: string;
     location?: string;
     notes?: string;
+    picName?: string;
+    picId?: string;
   }) => apiClient.post("/admin/interviews", data),
   updateInterview: (id: string, data: Record<string, unknown>) =>
     apiClient.patch(`/admin/interviews/${id}`, data),
   cancelInterview: (id: string) => apiClient.delete(`/admin/interviews/${id}`),
+  approveReschedule: (
+    id: string,
+    data?: { datetime?: string; notes?: string }
+  ) => apiClient.post(`/admin/interviews/${id}/reschedule-approve`, data || {}),
+  rejectReschedule: (id: string, data: { adminNote: string }) =>
+    apiClient.post(`/admin/interviews/${id}/reschedule-reject`, data),
 
   // Admin: Activity Logs
   getActivityLogs: (params?: {

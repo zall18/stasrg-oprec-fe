@@ -16,11 +16,18 @@ vi.mock("@/lib/api/client", () => ({
           roleInterest: "RISET",
           cvUrl: "https://storage.stasrg.org/cv.pdf",
           portfolioUrl: "https://github.com/alif",
+          transkripUrl: "https://storage.stasrg.org/transkrip.pdf",
+          ksmUrl: "https://storage.stasrg.org/ksm.pdf",
+          eprtUrl: "https://storage.stasrg.org/eprt.pdf",
+          linkedinUrl: "https://linkedin.com/in/alif",
         },
       },
     }),
     getRegistrationsHistory: vi.fn().mockResolvedValue({
-      data: { success: true, data: [] },
+      data: { success: true, data: [{ id: "reg-1", status: "PENDING", batchName: "Batch 1" }] },
+    }),
+    getGoldenApplication: vi.fn().mockResolvedValue({
+      data: { success: true, data: null },
     }),
     getCandidateInterviews: vi.fn().mockResolvedValue({
       data: { success: true, data: [] },
@@ -29,7 +36,7 @@ vi.mock("@/lib/api/client", () => ({
 }));
 
 describe("app/dashboard", () => {
-  it("renders candidate summary with fetched data and progress stepper", async () => {
+  it("renders prominent Golden Ticket, Reguler track CTAs, and candidate guide", async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -40,10 +47,10 @@ describe("app/dashboard", () => {
       </QueryClientProvider>
     );
 
-    expect(
-      screen.getByRole("heading", { name: /Halo/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText("Ringkasan Data Diri")).toBeInTheDocument();
-    expect(screen.getByTestId("progress-stepper")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Halo/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/JALUR GOLDEN TICKET/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/JALUR REGULER/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Panduan Langkah: Apa yang Harus Dilakukan Setelah Login\?/i)).toBeInTheDocument();
+    expect(await screen.findByTestId("progress-stepper")).toBeInTheDocument();
   });
 });

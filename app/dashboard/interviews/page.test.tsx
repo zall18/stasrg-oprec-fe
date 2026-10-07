@@ -56,7 +56,7 @@ describe("app/dashboard/interviews", () => {
         screen.getByText("https://meet.google.com/abc-defg-hij")
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Konfirmasi Kehadiran/i })
+        screen.getByRole("button", { name: /Konfirmasi Hadir/i })
       ).toBeInTheDocument();
     });
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { interviewSchema } from "./interview.schema";
+import { interviewSchema, rescheduleInterviewSchema } from "./interview.schema";
 
 describe("interviewSchema", () => {
   it("validates online interview", () => {
@@ -29,5 +29,19 @@ describe("interviewSchema", () => {
       datetime: "2026-10-15T09:00:00.000Z",
     };
     expect(interviewSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  it("validates rescheduleInterviewSchema correctly", () => {
+    const valid = {
+      proposedDatetime: "2026-10-20T10:00:00.000Z",
+      reason: "Ada jadwal praktikum mendadak pada jam tersebut.",
+    };
+    expect(rescheduleInterviewSchema.safeParse(valid).success).toBe(true);
+
+    const invalid = {
+      proposedDatetime: "",
+      reason: "short",
+    };
+    expect(rescheduleInterviewSchema.safeParse(invalid).success).toBe(false);
   });
 });

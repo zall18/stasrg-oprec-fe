@@ -32,6 +32,9 @@ export default function AdminCandidatesPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [nimFilter, setNimFilter] = useState("");
+  const [debouncedNim, setDebouncedNim] = useState("");
+  const [batchFilter, setBatchFilter] = useState("");
   const [activeTab, setActiveTab] = useState<"OPREC" | "GOLDEN">("OPREC");
   const [statusFilter, setStatusFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -65,8 +68,34 @@ export default function AdminCandidatesPage() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  // NIM filter debounce
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedNim(nimFilter);
+      setPage(1);
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [nimFilter]);
+
+  // Query batches for batch filter dropdown
+  const { data: batchesData } = useQuery({
+    queryKey: ["adminBatchesForFilter"],
+    queryFn: async () => {
+      try {
+        const res = await api.getBatches();
+        const data = res.data?.data ?? res.data;
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
   const queryParams = {
     search: debouncedSearch || undefined,
+    nim: debouncedNim || undefined,
+    batch: batchFilter || undefined,
     status: statusFilter || undefined,
     roleInterest: roleFilter || undefined,
     isGolden: activeTab === "GOLDEN" ? "true" : "false",
@@ -78,6 +107,8 @@ export default function AdminCandidatesPage() {
     queryKey: [
       "adminCandidates",
       debouncedSearch,
+      debouncedNim,
+      batchFilter,
       activeTab,
       statusFilter,
       roleFilter,
@@ -218,17 +249,43 @@ export default function AdminCandidatesPage() {
 
       {/* Filter & Search Bar */}
       <GlassCard className="p-4 flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="w-full sm:max-w-md">
-            <Input
-              placeholder="Cari nama, NIM, email, atau universitas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              leftIcon={<Search className="w-4 h-4" />}
-            />
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
+            <div className="flex-1">
+              <Input
+                placeholder="Cari nama, email, atau universitas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                leftIcon={<Search className="w-4 h-4" />}
+              />
+            </div>
+            <div className="w-full sm:w-44">
+              <Input
+                placeholder="Filter NIM..."
+                value={nimFilter}
+                onChange={(e) => setNimFilter(e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Batch Filter Dropdown */}
+            <select
+              value={batchFilter}
+              onChange={(e) => {
+                setBatchFilter(e.target.value);
+                setPage(1);
+              }}
+              className="flex-1 sm:flex-none px-3 py-2 rounded-2xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+            >
+              <option value="">Semua Batch</option>
+              {batchesData?.map((b: any) => (
+                <option key={b.id} value={b.name}>
+                  {b.name} {b.isActive ? " (Aktif)" : ""}
+                </option>
+              ))}
+            </select>
+
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -367,6 +424,7 @@ export default function AdminCandidatesPage() {
                     />
                   </th>
                   <th className="py-4 px-4">Kandidat Golden</th>
+                  <th className="py-4 px-4">Batch</th>
                   <th className="py-4 px-4">Akademik & Kampus</th>
                   <th className="py-4 px-4">Prestasi & Portofolio</th>
                   <th className="py-4 px-4">Motivasi Riset</th>
@@ -385,6 +443,7 @@ export default function AdminCandidatesPage() {
                     />
                   </th>
                   <th className="py-4 px-4">Kandidat</th>
+                  <th className="py-4 px-4">Batch</th>
                   <th className="py-4 px-4">NIM & Prodi</th>
                   <th className="py-4 px-4">Universitas</th>
                   <th className="py-4 px-4">Role Minat</th>
@@ -396,13 +455,13 @@ export default function AdminCandidatesPage() {
             <tbody className="divide-y divide-black/5">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#64746A]">
+                  <td colSpan={8} className="py-12 text-center text-[#64746A]">
                     Memuat data kandidat...
                   </td>
                 </tr>
               ) : candidates.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#64746A]">
+                  <td colSpan={8} className="py-12 text-center text-[#64746A]">
                     {activeTab === "GOLDEN"
                       ? "Belum ada pendaftar melalui jalur Golden Candidate."
                       : "Tidak ditemukan data pendaftar yang sesuai."}
@@ -466,6 +525,11 @@ export default function AdminCandidatesPage() {
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-900 border border-amber-500/20">
+                          {cand.batch?.name || item.batch?.name || item.batchName || cand.batchName || "Batch Golden"}
+                        </span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex flex-col">
@@ -622,6 +686,11 @@ export default function AdminCandidatesPage() {
                             {email}
                           </span>
                         </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#274432]/10 text-[#274432] border border-[#274432]/20">
+                          {cand.batch?.name || item.batch?.name || item.batchName || cand.batchName || "Batch Aktif"}
+                        </span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex flex-col">

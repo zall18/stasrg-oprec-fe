@@ -49,7 +49,10 @@ describe("app/admin/candidates", () => {
       screen.getByRole("heading", { name: /Manajemen Pendaftar/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText(/Cari nama, NIM, email/i)
+      screen.getByPlaceholderText(/Cari nama, email/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/Filter NIM/i)
     ).toBeInTheDocument();
     expect(
       screen.getByRole("checkbox", { name: /Pilih Semua/i })

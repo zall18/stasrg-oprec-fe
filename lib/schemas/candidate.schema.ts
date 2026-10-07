@@ -45,10 +45,17 @@ export const candidateProfileSchema = z.object({
     .string({ required_error: "Tautan portofolio wajib diisi" })
     .url("Format URL portofolio harus valid (https://...)"),
   transkripUrl: z
-    .string()
-    .url("Format URL transkrip tidak valid")
-    .optional()
-    .or(z.literal("")),
+    .string({ required_error: "Tautan/Berkas transkrip nilai wajib diisi" })
+    .min(1, "Berkas transkrip nilai wajib diunggah"),
+  ksmUrl: z
+    .string({ required_error: "Tautan/Berkas KSM wajib diisi" })
+    .min(1, "Berkas KSM wajib diunggah"),
+  eprtUrl: z
+    .string({ required_error: "Tautan/Berkas sertifikat EPRT wajib diisi" })
+    .min(1, "Berkas sertifikat EPRT wajib diunggah"),
+  linkedinUrl: z
+    .string({ required_error: "Tautan profil LinkedIn wajib diisi" })
+    .min(1, "Tautan profil LinkedIn wajib diisi"),
   ipk: z
     .number({ invalid_type_error: "IPK harus berupa angka" })
     .min(0, "IPK minimal 0.00")

@@ -18,12 +18,18 @@ import {
   AlertTriangle,
   ArrowRight,
   FileText,
-  ExternalLink,
-  GraduationCap,
   Sparkles,
   Rocket,
   Calendar,
   History,
+  CheckCircle2,
+  HelpCircle,
+  Award,
+  BookOpen,
+  Briefcase,
+  ChevronRight,
+  Clock,
+  Compass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,8 +38,7 @@ export default function CandidateDashboardPage() {
 
   const {
     data: profileData,
-    isLoading,
-    isError,
+    isLoading: isLoadingProfile,
   } = useQuery({
     queryKey: ["candidateProfile"],
     queryFn: async () => {
@@ -55,7 +60,7 @@ export default function CandidateDashboardPage() {
     },
   });
 
-  // Query candidate golden application (Poin 6)
+  // Query candidate golden application
   const { data: goldenAppData } = useQuery({
     queryKey: ["candidateGoldenApp"],
     queryFn: async () => {
@@ -83,12 +88,19 @@ export default function CandidateDashboardPage() {
 
   const profile = profileData;
   const isProfileComplete = Boolean(
-    profile?.fullName && profile?.nim && profile?.cvUrl
+    profile?.fullName &&
+    profile?.nim &&
+    profile?.cvUrl &&
+    profile?.transkripUrl &&
+    profile?.ksmUrl &&
+    profile?.eprtUrl &&
+    profile?.linkedinUrl
   );
 
-  const latestRegistration = registrationsData && registrationsData.length > 0
-    ? registrationsData[0]
-    : null;
+  const latestRegistration =
+    registrationsData && registrationsData.length > 0
+      ? registrationsData[0]
+      : null;
 
   const currentSelectionStatus: SelectionStatus =
     (latestRegistration?.status as SelectionStatus) ||
@@ -96,250 +108,421 @@ export default function CandidateDashboardPage() {
     "PENDING";
 
   const upcomingInterview = interviewsData?.find(
-    (i: any) => i.status === "SCHEDULED" || i.status === "CONFIRMED"
+    (i: any) =>
+      i.status === "SCHEDULED" ||
+      i.status === "CONFIRMED" ||
+      i.status === "RESCHEDULE_REQUESTED" ||
+      i.status === "RESCHEDULE_REJECTED"
   );
 
   return (
-    <div className="flex flex-col gap-6 sm:gap-8">
-      {/* Welcome Banner */}
-      <GlassCard className="p-5 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6 border-white/60">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#274432]">
-              Portal Kandidat STAS-RG
-            </span>
-            {isProfileComplete ? (
-              <Badge variant="DITERIMA">Profil Lengkap</Badge>
-            ) : (
-              <Badge variant="PENDING">Profil Belum Lengkap</Badge>
-            )}
+    <div className="flex flex-col gap-6 sm:gap-8 max-w-6xl mx-auto">
+      {/* 1. SECTION PALING ATAS: GREETING & PILIHAN JALUR PENDAFTARAN UTAMA */}
+      <div className="flex flex-col gap-4">
+        {/* Top Greeting & Profil Status Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#274432] bg-[#274432]/10 px-2.5 py-0.5 rounded-full">
+                Portal Rekrutmen STAS-RG
+              </span>
+              {isProfileComplete ? (
+                <Badge variant="DITERIMA">✓ Berkas Lengkap</Badge>
+              ) : (
+                <Badge variant="PENDING">⚠️ Berkas Belum Lengkap</Badge>
+              )}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A201C]">
+              Halo, {profile?.fullName || user?.email || "Kandidat"}! 👋
+            </h1>
+            <p className="text-xs sm:text-sm text-[#64746A] mt-0.5">
+              Pilih salah satu jalur pendaftaran di bawah ini sesuai kualifikasi dan pengalaman Anda untuk memulai proses seleksi.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A201C]">
-            Halo, {profile?.fullName || user?.email || "Kandidat"}!
-          </h1>
-          <p className="text-xs sm:text-sm text-[#64746A] max-w-xl">
-            {isProfileComplete
-              ? "Profil dan dokumen Anda telah tersimpan. Anda siap mengikuti tahapan seleksi Golden Candidate atau Open Recruitment."
-              : "Lengkapi data profil dan berkas CV Anda agar PIC seleksi lab dapat meninjau kualifikasi Anda."}
-          </p>
+
+          <Link href="/dashboard/profile" className="shrink-0 w-full sm:w-auto">
+            <Button
+              variant={isProfileComplete ? "outline" : "primary"}
+              size="sm"
+              className={cn(
+                "w-full sm:w-auto text-xs shadow-sm font-semibold justify-center",
+                !isProfileComplete && "bg-[#274432] hover:bg-[#1e3426] text-white shadow-emerald-950/10 font-bold"
+              )}
+              rightIcon={!isProfileComplete ? <ArrowRight className="w-3.5 h-3.5" /> : undefined}
+              leftIcon={isProfileComplete ? <FileText className="w-3.5 h-3.5" /> : undefined}
+            >
+              {isProfileComplete ? "Edit Berkas Profil" : "Lengkapi Berkas Wajib"}
+            </Button>
+          </Link>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          {!isProfileComplete ? (
-            <Link href="/dashboard/profile" className="w-full sm:w-auto">
-              <Button
-                variant="primary"
-                className="w-full sm:w-auto justify-center"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-              >
-                Lengkapi Profil Sekarang
-              </Button>
+        {/* Warning Banner jika berkas wajib belum lengkap */}
+        {!isProfileComplete && (
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 text-amber-950">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                <strong>Penting:</strong> Pastikan Anda telah melengkapi data diri dan mengunggah berkas wajib (CV, Transkrip, KSM, EPRT, & LinkedIn) di profil agar pendaftaran dapat divalidasi.
+              </span>
+            </div>
+            <Link href="/dashboard/profile" className="shrink-0 font-bold text-amber-900 underline hover:text-amber-950">
+              Lengkapi Sekarang →
             </Link>
-          ) : (
-            <Link href="/dashboard/profile" className="w-full sm:w-auto">
-              <Button variant="secondary" className="w-full sm:w-auto justify-center" leftIcon={<FileText className="w-4 h-4" />}>
-                Perbarui Profil
-              </Button>
-            </Link>
-          )}
+          </div>
+        )}
+
+        {/* 2 KARTU JALUR UTAMA (GOLDEN TICKET & REGULER OPREC) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+          {/* CARD 1: JALUR GOLDEN TICKET (HIGH PRIORITY & PROMINENT) */}
+          <div
+            className={cn(
+              "relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6 transition-all duration-300",
+              "bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-white/70",
+              "border-2 border-amber-500/30 hover:border-amber-500/60 shadow-xl shadow-amber-900/5",
+              goldenAppData?.id && "ring-2 ring-amber-500/40 bg-amber-50/60"
+            )}
+          >
+            {/* Top Tag & Sparkle */}
+            <div className="flex items-start justify-between gap-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-sm tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-spin" style={{ animationDuration: "4s" }} />
+                JALUR GOLDEN TICKET
+              </span>
+              {goldenAppData?.id && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                  Status: {goldenAppData.status || "PENDING"}
+                </span>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xl font-extrabold text-[#1A201C] flex items-center gap-2">
+                Jalur Prestasi & Portofolio Khusus
+              </h3>
+              <p className="text-xs sm:text-sm text-[#5C5542] leading-relaxed">
+                Punya pengalaman proyek teknologi, prestasi lomba, atau riset yang sudah terbukti? 
+                Jalur Golden Ticket memberikan akses prioritas penugasan proyek lab secara langsung.
+              </p>
+
+              {/* Perks Checklist */}
+              <div className="grid grid-cols-1 gap-2 pt-2 border-t border-amber-500/15">
+                <div className="flex items-center gap-2 text-xs text-[#3E3827]">
+                  <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span><strong>Fast-track Review</strong> oleh Principal Investigator Lab</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#3E3827]">
+                  <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span><strong>Prioritas Penugasan</strong> pada proyek riset industri</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#3E3827]">
+                  <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>Wawancara khusus berbasis portofolio dan karya Anda</span>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="pt-2">
+              <Link href="/dashboard/golden-candidate" className="w-full">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full justify-center bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-lg shadow-amber-700/20"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  {goldenAppData?.id
+                    ? "Pantau Aplikasi Golden Ticket Anda"
+                    : "Daftar Jalur Golden Ticket Sekarang"}
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* CARD 2: JALUR REGULER (OPEN RECRUITMENT) */}
+          <div
+            className={cn(
+              "relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6 transition-all duration-300",
+              "bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-white/70",
+              "border-2 border-emerald-600/30 hover:border-emerald-600/60 shadow-xl shadow-emerald-900/5",
+              latestRegistration && "ring-2 ring-emerald-600/40 bg-emerald-50/50"
+            )}
+          >
+            {/* Top Tag */}
+            <div className="flex items-start justify-between gap-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#274432] text-white shadow-sm tracking-wide">
+                <Rocket className="w-3.5 h-3.5 text-emerald-300" />
+                JALUR REGULER (OPREC)
+              </span>
+              {latestRegistration && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                  Batch: {latestRegistration.batchName || "Aktif"}
+                </span>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xl font-extrabold text-[#1A201C] flex items-center gap-2">
+                Open Recruitment Batch Umum
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4A5D52] leading-relaxed">
+                Terbuka bagi seluruh mahasiswa aktif yang ingin belajar, berkembang, dan 
+                berkontribusi langsung di divisi <strong>Riset</strong> maupun <strong>Magang</strong>.
+              </p>
+
+              {/* Perks Checklist */}
+              <div className="grid grid-cols-1 gap-2 pt-2 border-t border-emerald-600/15">
+                <div className="flex items-center gap-2 text-xs text-[#203628]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>Pilihan 2 divisi fokus: <strong>Mahasiswa Riset</strong> & <strong>Magang</strong></span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#203628]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>Bimbingan intensif dan kurikulum terstruktur dari tim lab</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#203628]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>Kesempatan konversi SKS perkuliahan dan publikasi riset</span>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="pt-2">
+              <Link href="/dashboard/oprec" className="w-full">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full justify-center bg-[#274432] hover:bg-[#1e3426] text-white font-bold shadow-lg shadow-[#274432]/20"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  {latestRegistration
+                    ? "Cek Status Pendaftaran Reguler"
+                    : "Pilih Batch & Daftar Sekarang"}
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-      </GlassCard>
+      </div>
 
-      {/* Progress Stepper Tahapan Seleksi (Poin 6) */}
-      {goldenAppData?.id ? (
-        <GoldenProgressStepper currentStatus={goldenAppData.status || "PENDING"} />
-      ) : (
-        <ProgressStepper currentStatus={currentSelectionStatus} />
-      )}
-
-      {/* Interview Alert Banner if any upcoming interview */}
+      {/* 2. NOTIFIKASI WAWANCARA (JIKA ADA JADWAL AKTIF) */}
       {upcomingInterview && (
-        <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-emerald-700 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div
+          className={cn(
+            "p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all",
+            upcomingInterview.status === "RESCHEDULE_REJECTED"
+              ? "bg-rose-700"
+              : upcomingInterview.status === "RESCHEDULE_REQUESTED"
+              ? "bg-amber-600"
+              : "bg-emerald-700"
+          )}
+        >
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-white/20 shrink-0">
               <Calendar className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider opacity-80">
-                Pemberitahuan Wawancara
+              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
+                {upcomingInterview.status === "RESCHEDULE_REJECTED"
+                  ? "Permohonan Reschedule Ditolak"
+                  : upcomingInterview.status === "RESCHEDULE_REQUESTED"
+                  ? "Menunggu Konfirmasi Reschedule Admin"
+                  : "Pemberitahuan Wawancara"}
               </span>
               <h4 className="text-sm font-bold">
-                Jadwal Wawancara:{" "}
+                Jadwal:{" "}
                 {new Date(upcomingInterview.datetime).toLocaleString("id-ID", {
                   dateStyle: "full",
                   timeStyle: "short",
                 })}
               </h4>
+              {upcomingInterview.picName && (
+                <p className="text-xs opacity-90 mt-0.5">
+                  PIC Pewawancara: <strong>{upcomingInterview.picName}</strong>
+                </p>
+              )}
             </div>
           </div>
           <Link href="/dashboard/interviews" className="w-full sm:w-auto">
             <Button
               variant="secondary"
               size="sm"
-              className="w-full sm:w-auto justify-center bg-white text-emerald-900 font-bold hover:bg-emerald-50"
+              className="w-full sm:w-auto justify-center bg-white text-[#1A201C] font-bold hover:bg-white/90 shadow-xs"
             >
-              Lihat Detail & Konfirmasi
+              Lihat Detail & Atur Jadwal
             </Button>
           </Link>
         </div>
       )}
 
-      {/* Main Grid Content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Profile Summary Card */}
-        <GlassCard className="p-6 md:col-span-2 flex flex-col gap-6">
-          <div className="flex items-center justify-between border-b border-black/5 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <h2 className="text-base font-bold text-[#1A201C]">
-                Ringkasan Data Diri
-              </h2>
+      {/* 3. STATUS SELEKSI AKTIF & PROGRESS STEPPER (JIKA SUDAH MENDAFTAR) */}
+      {(goldenAppData?.id || latestRegistration) && (
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-bold text-[#64746A] uppercase tracking-wider px-1">
+            Status Seleksi Aktif Anda
+          </span>
+          {goldenAppData?.id ? (
+            <GoldenProgressStepper currentStatus={goldenAppData.status || "PENDING"} />
+          ) : (
+            <ProgressStepper currentStatus={currentSelectionStatus} />
+          )}
+        </div>
+      )}
+
+      {/* PANDUAN LANGKAH: APA YANG HARUS DILAKUKAN KANDIDAT? */}
+      <GlassCard className="p-6 sm:p-8 flex flex-col gap-6 border-white/60">
+        <div className="flex flex-col gap-1 border-b border-black/5 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-[#274432]/10 text-[#274432] flex items-center justify-center font-bold text-xs">
+              ?
+            </span>
+            <h3 className="text-base sm:text-lg font-bold text-[#1A201C]">
+              Panduan Langkah: Apa yang Harus Dilakukan Setelah Login?
+            </h3>
+          </div>
+          <p className="text-xs text-[#64746A]">
+            Ikuti 3 tahapan mudah berikut untuk memastikan berkas Anda terverifikasi dengan benar
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Step 1 */}
+          <div className="p-4 rounded-2xl bg-white/60 border border-black/5 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-7 h-7 rounded-xl bg-[#274432] text-white flex items-center justify-center font-extrabold text-xs">
+                1
+              </span>
+              {isProfileComplete ? (
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Selesai
+                </span>
+              ) : (
+                <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                  Wajib Diisi
+                </span>
+              )}
             </div>
-            {profile?.roleInterest && (
-              <Badge variant="DEFAULT">Role: {profile.roleInterest}</Badge>
-            )}
+            <h4 className="font-bold text-sm text-[#1A201C]">
+              Lengkapi Data Profil & Dokumen
+            </h4>
+            <p className="text-xs text-[#64746A] leading-relaxed">
+              Isi data diri Anda dan unggah berkas wajib: <strong>CV</strong>, <strong>Transkrip Nilai</strong>, <strong>KSM</strong>, <strong>Sertifikat EPRT</strong>, serta tautan <strong>LinkedIn</strong>.
+            </p>
+            <Link href="/dashboard/profile" className="mt-auto pt-2">
+              <span className="text-xs font-bold text-[#274432] hover:underline flex items-center gap-1">
+                Buka Form Profil <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
           </div>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12 text-[#64746A] text-xs">
-              Memuat data profil...
+          {/* Step 2 */}
+          <div className="p-4 rounded-2xl bg-white/60 border border-black/5 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-7 h-7 rounded-xl bg-amber-600 text-white flex items-center justify-center font-extrabold text-xs">
+                2
+              </span>
+              <span className="text-[11px] font-bold text-[#64746A] bg-black/5 px-2 py-0.5 rounded-full">
+                Pilih Jalur
+              </span>
             </div>
-          ) : isProfileComplete ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="flex flex-col gap-1 p-3.5 rounded-2xl bg-white/40 border border-black/5">
-                <span className="text-[#64746A]">Nama Lengkap</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
-                  {profile.fullName}
+            <h4 className="font-bold text-sm text-[#1A201C]">
+              Pilih Jalur yang Sesuai
+            </h4>
+            <p className="text-xs text-[#64746A] leading-relaxed">
+              Jika punya portofolio unggul, ajukan <strong>Golden Ticket</strong>. Jika ingin seleksi umum bersama kandidat lain, ajukan pada <strong>Jalur Reguler (Oprec)</strong>.
+            </p>
+            <div className="mt-auto pt-2 flex items-center gap-3">
+              <Link href="/dashboard/golden-candidate">
+                <span className="text-xs font-bold text-amber-800 hover:underline">
+                  Golden Ticket
                 </span>
-              </div>
-
-              <div className="flex flex-col gap-1 p-3.5 rounded-2xl bg-white/40 border border-black/5">
-                <span className="text-[#64746A]">NIM</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
-                  {profile.nim}
+              </Link>
+              <span className="text-[#64746A] text-xs">•</span>
+              <Link href="/dashboard/oprec">
+                <span className="text-xs font-bold text-emerald-800 hover:underline">
+                  Jalur Reguler
                 </span>
-              </div>
-
-              <div className="flex flex-col gap-1 p-3.5 rounded-2xl bg-white/40 border border-black/5">
-                <span className="text-[#64746A]">Universitas</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
-                  {profile.universitas}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1 p-3.5 rounded-2xl bg-white/40 border border-black/5">
-                <span className="text-[#64746A]">Program Studi</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
-                  {profile.programStudi}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1 p-3.5 rounded-2xl bg-white/40 border border-black/5">
-                <span className="text-[#64746A]">IPK / Semester</span>
-                <span className="font-semibold text-sm text-[#1A201C]">
-                  {profile.ipk ? `${profile.ipk} (Semester ${profile.semester || "-"})` : "-"}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1 p-3.5 rounded-2xl bg-white/40 border border-black/5">
-                <span className="text-[#64746A]">Berkas Terlampir</span>
-                <div className="flex items-center gap-3 pt-1">
-                  {profile.cvUrl && (
-                    <a
-                      href={profile.cvUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#274432] font-semibold flex items-center gap-1 hover:underline"
-                    >
-                      <FileText className="w-3.5 h-3.5" /> Preview CV
-                    </a>
-                  )}
-                  {profile.portfolioUrl && (
-                    <a
-                      href={profile.portfolioUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#274432] font-semibold flex items-center gap-1 hover:underline"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" /> Portofolio
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-              <AlertTriangle className="w-10 h-10 text-amber-600/80" />
-              <p className="text-xs text-[#64746A] max-w-sm">
-                Anda belum melengkapi profil pendaftaran. Segera isi informasi pribadi, akademik, dan unggah CV PDF maksimal 5MB.
-              </p>
-              <Link href="/dashboard/profile">
-                <Button variant="primary" size="sm">
-                  Isi Formulir Profil
-                </Button>
               </Link>
             </div>
-          )}
-        </GlassCard>
+          </div>
 
-        {/* Quick Action Side Panel */}
-        <div className="flex flex-col gap-6">
-          <GlassCard variant="tinted" className="p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-900">
-                <Sparkles className="w-4 h-4" />
+          {/* Step 3 */}
+          <div className="p-4 rounded-2xl bg-white/60 border border-black/5 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-xs">
+                3
+              </span>
+              <span className="text-[11px] font-bold text-[#64746A] bg-black/5 px-2 py-0.5 rounded-full">
+                Seleksi & Interview
+              </span>
+            </div>
+            <h4 className="font-bold text-sm text-[#1A201C]">
+              Pantau Pengumuman & Wawancara
+            </h4>
+            <p className="text-xs text-[#64746A] leading-relaxed">
+              Cek portal ini secara berkala. Jika lolos berkas, jadwal wawancara akan muncul dan Anda dapat mengonfirmasi atau mengajukan reschedule jika ada kendala.
+            </p>
+            <Link href="/dashboard/interviews" className="mt-auto pt-2">
+              <span className="text-xs font-bold text-blue-800 hover:underline flex items-center gap-1">
+                Cek Jadwal Interview <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Tautan Cepat / Bottom Quick Links */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link href="/dashboard/interviews">
+          <GlassCard className="p-4.5 flex items-center justify-between hover:bg-white/80 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-700">
+                <Calendar className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-sm font-bold text-[#1A201C]">
-                  Jalur Golden Ticket
-                </h3>
-                {goldenAppData?.id && (
-                  <span className="text-[10px] font-bold text-amber-900">
-                    Tahap: {goldenAppData.status || "PENDING"}
-                  </span>
-                )}
+                <span className="font-bold text-xs text-[#1A201C]">Jadwal Wawancara</span>
+                <span className="text-[11px] text-[#64746A]">
+                  {interviewsData?.length ? `${interviewsData.length} jadwal terdaftar` : "Belum ada jadwal"}
+                </span>
               </div>
             </div>
-            <p className="text-xs text-[#64746A] leading-relaxed">
-              {goldenAppData?.id
-                ? "Aplikasi Golden Candidate Anda telah diajukan. Pantau perkembangan tahapan evaluasi portofolio & wawancara di sini."
-                : "Jalur khusus penugasan proyek lab bagi pendaftar dengan portofolio unggul. Cukup lengkapi data profil Golden Candidate."}
-            </p>
-            <Link href="/dashboard/golden-candidate" className="pt-2">
-              <Button
-                variant={goldenAppData?.id ? "primary" : "outline"}
-                size="sm"
-                className={cn(
-                  "w-full",
-                  goldenAppData?.id && "bg-amber-600 hover:bg-amber-700 text-white"
-                )}
-              >
-                {goldenAppData?.id ? "Lihat Detail Golden" : "Buka Formulir"}
-              </Button>
-            </Link>
+            <ChevronRight className="w-4 h-4 text-[#64746A] group-hover:translate-x-0.5 transition-transform" />
           </GlassCard>
+        </Link>
 
-          <GlassCard className="p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432]">
-                <Rocket className="w-4 h-4" />
+        <Link href="/dashboard/history">
+          <GlassCard className="p-4.5 flex items-center justify-between hover:bg-white/80 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-700">
+                <History className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-[#1A201C]">
-                Jalur Open Recruitment
-              </h3>
+              <div className="flex flex-col">
+                <span className="font-bold text-xs text-[#1A201C]">Riwayat Pendaftaran</span>
+                <span className="text-[11px] text-[#64746A]">
+                  {registrationsData?.length ? `${registrationsData.length} riwayat batch` : "Cek status pendaftaran"}
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-[#64746A] leading-relaxed">
-              Daftar ke batch seleksi umum yang sedang aktif saat ini.
-            </p>
-            <Link href="/dashboard/oprec" className="pt-2">
-              <Button variant="primary" size="sm" className="w-full">
-                Cek Status Batch
-              </Button>
-            </Link>
+            <ChevronRight className="w-4 h-4 text-[#64746A] group-hover:translate-x-0.5 transition-transform" />
           </GlassCard>
-        </div>
+        </Link>
+
+        <Link href="/rekrutmen">
+          <GlassCard className="p-4.5 flex items-center justify-between hover:bg-white/80 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-700">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold text-xs text-[#1A201C]">Panduan & Info Lab</span>
+                <span className="text-[11px] text-[#64746A]">Kriteria berkas & alur seleksi</span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-[#64746A] group-hover:translate-x-0.5 transition-transform" />
+          </GlassCard>
+        </Link>
       </div>
     </div>
   );

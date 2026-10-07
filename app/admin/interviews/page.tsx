@@ -23,6 +23,11 @@ import {
   Trash2,
   Calendar,
   Search,
+  UserCheck,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +39,23 @@ interface AdminInterview {
   link?: string;
   location?: string;
   notes?: string;
-  status: "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+  status:
+    | "SCHEDULED"
+    | "CONFIRMED"
+    | "RESCHEDULE_REQUESTED"
+    | "RESCHEDULE_REJECTED"
+    | "COMPLETED"
+    | "CANCELLED";
+  picName?: string;
+  picId?: string;
+  pic?: {
+    id: string;
+    email: string;
+    fullName?: string;
+  };
+  rescheduleProposedDate?: string;
+  rescheduleReason?: string;
+  adminRescheduleNote?: string;
   candidate?: {
     id: string;
     fullName?: string;
@@ -69,6 +90,11 @@ function AdminInterviewsContent() {
     null
   );
 
+  // Reject reschedule modal state
+  const [rejectModalInterview, setRejectModalInterview] =
+    useState<AdminInterview | null>(null);
+  const [rejectAdminNote, setRejectAdminNote] = useState("");
+
   // Form states
   const [candidateId, setCandidateId] = useState("");
   const [datetime, setDatetime] = useState("");
@@ -76,6 +102,7 @@ function AdminInterviewsContent() {
   const [link, setLink] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
+  const [picName, setPicName] = useState("");
 
   // Auto-select candidate and open modal if navigated from candidate detail page
   useEffect(() => {
@@ -86,6 +113,7 @@ function AdminInterviewsContent() {
       setLink("https://meet.google.com/");
       setLocation("");
       setNotes("");
+      setPicName("");
       setIsModalOpen(true);
     }
   }, [urlCandidateId]);
@@ -163,40 +191,17 @@ function AdminInterviewsContent() {
             profileObj.universitas ||
             item.universitas ||
             cand.university ||
-            profileObj.university ||
-            item.university ||
             "";
 
-          const email =
-            userObj.email ||
-            cand.email ||
-            item.email ||
-            "";
-
-          const isGoldenCandidate = Boolean(
-            isGolden ||
-            cand.isGoldenCandidate ||
-            cand.isGolden ||
-            item.isGoldenCandidate ||
-            item.isGolden ||
-            item.goldenApplication ||
-            cand.goldenApplication
-          );
-
-          const record = {
-            id: resolvedId,
-            altId: item.id !== resolvedId ? item.id : undefined,
-            registrationId: item.candidateId ? item.id : undefined,
-            fullName,
-            universitas,
-            email,
-            isGoldenCandidate,
-            raw: item,
-          };
-
-          map.set(resolvedId, record);
-          if (item.id && item.id !== resolvedId) {
-            map.set(item.id, record);
+          if (resolvedId && !map.has(resolvedId)) {
+            map.set(resolvedId, {
+              id: resolvedId,
+              altId: item.id !== resolvedId ? item.id : undefined,
+              registrationId: item.registrationId || item.id,
+              fullName,
+              universitas,
+              isGoldenCandidate: isGolden,
+            });
           }
         };
 
@@ -239,6 +244,7 @@ function AdminInterviewsContent() {
     setLink("https://meet.google.com/");
     setLocation("");
     setNotes("");
+    setPicName("");
     setIsModalOpen(true);
   };
 
@@ -252,6 +258,7 @@ function AdminInterviewsContent() {
     setLink(iv.link || "");
     setLocation(iv.location || "");
     setNotes(iv.notes || "");
+    setPicName(iv.picName || "");
     setIsModalOpen(true);
   };
 
@@ -270,6 +277,7 @@ function AdminInterviewsContent() {
         link: type === "ONLINE" ? link : undefined,
         location: type === "OFFLINE" ? location : undefined,
         notes: notes || undefined,
+        picName: picName.trim() || undefined,
       };
 
       if (editingInterview) {
@@ -292,6 +300,42 @@ function AdminInterviewsContent() {
     },
   });
 
+  // Approve Reschedule Mutation
+  const approveRescheduleMutation = useMutation({
+    mutationFn: async ({ id, datetime }: { id: string; datetime?: string }) => {
+      return api.approveReschedule(id, { datetime });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminInterviews"] });
+      toast.success("Permohonan reschedule disetujui! Jadwal telah diperbarui.");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal menyetujui reschedule");
+    },
+  });
+
+  // Reject Reschedule Mutation
+  const rejectRescheduleMutation = useMutation({
+    mutationFn: async () => {
+      if (!rejectModalInterview) return;
+      if (!rejectAdminNote.trim() || rejectAdminNote.trim().length < 5) {
+        throw new Error("Catatan alasan penolakan minimal 5 karakter.");
+      }
+      return api.rejectReschedule(rejectModalInterview.id, {
+        adminNote: rejectAdminNote.trim(),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminInterviews"] });
+      toast.success("Permohonan reschedule ditolak dan catatan telah dikirim ke kandidat.");
+      setRejectModalInterview(null);
+      setRejectAdminNote("");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Gagal menolak reschedule");
+    },
+  });
+
   // Cancel interview mutation
   const cancelMutation = useMutation({
     mutationFn: (id: string) => api.cancelInterview(id),
@@ -307,7 +351,7 @@ function AdminInterviewsContent() {
   const interviews = interviewsData || [];
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
@@ -316,66 +360,69 @@ function AdminInterviewsContent() {
             <CalendarCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#274432]" />
           </h1>
           <p className="text-xs text-[#64746A]">
-            Atur dan kelola sesi wawancara daring atau luring bersama kandidat seleksi
+            Atur dan kelola sesi wawancara, penugasan PIC pewawancara, serta tanggapi permohonan reschedule kandidat
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={openCreateModal}
-          leftIcon={<Plus className="w-4 h-4" />}
-          className="w-full sm:w-auto"
-        >
-          Buat Jadwal Wawancara
-        </Button>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button
+            variant="primary"
+            onClick={openCreateModal}
+            leftIcon={<Plus className="w-4 h-4" />}
+            className="w-full sm:w-auto shadow-md"
+          >
+            Buat Jadwal Wawancara
+          </Button>
+        </div>
       </div>
 
-      {/* Filter Bar */}
-      <GlassCard className="p-3.5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+      {/* Filter Toolbar */}
+      <GlassCard className="p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-white/60">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-[#64746A] whitespace-nowrap">Status:</span>
+          <Calendar className="w-4 h-4 text-[#274432]" />
+          <span className="text-xs font-bold text-[#1A201C]">
+            Filter Status:
+          </span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-white/60 border border-black/10 text-xs text-[#1A201C] outline-hidden"
+            className="px-3 py-1.5 rounded-2xl bg-white/70 border border-black/10 text-xs text-[#1A201C] outline-hidden"
           >
             <option value="">Semua Status Wawancara</option>
-            <option value="SCHEDULED">Menunggu Konfirmasi (Scheduled)</option>
-            <option value="CONFIRMED">Terkonfirmasi (Confirmed)</option>
-            <option value="COMPLETED">Selesai (Completed)</option>
-            <option value="CANCELLED">Dibatalkan (Cancelled)</option>
+            <option value="RESCHEDULE_REQUESTED">⚠️ Menunggu Reschedule (Kandidat)</option>
+            <option value="SCHEDULED">Scheduled (Menunggu Konfirmasi)</option>
+            <option value="CONFIRMED">Confirmed (Hadir Dikonfirmasi)</option>
+            <option value="RESCHEDULE_REJECTED">Reschedule Ditolak</option>
+            <option value="COMPLETED">Completed (Selesai)</option>
+            <option value="CANCELLED">Cancelled (Dibatalkan)</option>
           </select>
         </div>
 
         <span className="text-xs text-[#64746A]">
-          Total {interviews.length} sesi
+          Total: <strong>{interviews.length}</strong> sesi wawancara
         </span>
       </GlassCard>
 
-      {/* Interviews Table / Cards */}
+      {/* Interviews Grid */}
       {isLoading ? (
         <GlassCard className="p-8 text-center text-xs text-[#64746A]">
           Memuat jadwal wawancara...
         </GlassCard>
       ) : interviews.length === 0 ? (
-        <GlassCard className="p-8 sm:p-12 text-center flex flex-col items-center gap-3">
+        <GlassCard className="p-12 text-center flex flex-col items-center gap-3 border-white/60">
           <Calendar className="w-12 h-12 text-[#64746A]/40" />
           <h3 className="text-base font-bold text-[#1A201C]">
-            Belum Ada Sesi Wawancara
+            Belum Ada Jadwal Wawancara
           </h3>
           <p className="text-xs text-[#64746A] max-w-sm">
-            Klik tombol di atas untuk menjadwalkan wawancara pertama untuk kandidat.
+            Klik tombol "Buat Jadwal Wawancara" di atas untuk menambahkan sesi baru bagi kandidat.
           </p>
-          <Button variant="primary" size="sm" onClick={openCreateModal} className="w-full sm:w-auto">
-            Jadwalkan Wawancara Sekarang
-          </Button>
         </GlassCard>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {interviews.map((item) => {
             const isOnline = item.type === "ONLINE";
             const dateObj = new Date(item.datetime);
-
             const candRel: any = item.candidate || {};
             const candProfile = candRel.profile || {};
             const candUser = candRel.user || {};
@@ -400,12 +447,18 @@ function AdminInterviewsContent() {
               lookup?.universitas ||
               "";
 
+            const isRescheduleReq = item.status === "RESCHEDULE_REQUESTED";
+
             return (
               <GlassCard
                 key={item.id}
-                className="p-4 sm:p-6 flex flex-col justify-between gap-4 border-white/60 hover:shadow-md transition-all"
+                className={cn(
+                  "p-4 sm:p-6 flex flex-col justify-between gap-4 border-white/60 hover:shadow-md transition-all",
+                  isRescheduleReq && "ring-2 ring-amber-500/50 bg-amber-50/40 border-amber-400"
+                )}
               >
                 <div className="flex flex-col gap-3">
+                  {/* Top Candidate & Status Badge */}
                   <div className="flex flex-col min-[420px]:flex-row min-[420px]:items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-8 h-8 rounded-xl bg-[#274432]/10 flex items-center justify-center text-[#274432] shrink-0">
@@ -421,23 +474,41 @@ function AdminInterviewsContent() {
                       </div>
                     </div>
 
-                    <Badge
-                      className="self-start min-[420px]:self-auto"
-                      variant={
-                        item.status === "CONFIRMED"
-                          ? "DITERIMA"
-                          : item.status === "COMPLETED"
-                          ? "DEFAULT"
-                          : item.status === "CANCELLED"
-                          ? "DITOLAK"
-                          : "PENDING"
-                      }
-                    >
-                      {item.status}
-                    </Badge>
+                    <div>
+                      {item.status === "CONFIRMED" ? (
+                        <Badge variant="DITERIMA">Confirmed</Badge>
+                      ) : item.status === "RESCHEDULE_REQUESTED" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500 text-white shadow-xs">
+                          <RotateCcw className="w-3 h-3 animate-spin" style={{ animationDuration: "3s" }} />
+                          Minta Reschedule
+                        </span>
+                      ) : item.status === "RESCHEDULE_REJECTED" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                          Reschedule Ditolak
+                        </span>
+                      ) : item.status === "COMPLETED" ? (
+                        <Badge variant="DEFAULT">Completed</Badge>
+                      ) : item.status === "CANCELLED" ? (
+                        <Badge variant="DITOLAK">Cancelled</Badge>
+                      ) : (
+                        <Badge variant="PENDING">Scheduled</Badge>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-[#1A201C] pt-2 border-t border-black/5">
+                  {/* PIC Info */}
+                  <div className="flex items-center gap-1.5 text-xs text-[#274432] bg-[#274432]/5 px-2.5 py-1.5 rounded-xl border border-[#274432]/10">
+                    <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">
+                      PIC:{" "}
+                      <strong className="text-[#1A201C]">
+                        {item.picName || item.pic?.fullName || item.pic?.email || "Belum ditentukan"}
+                      </strong>
+                    </span>
+                  </div>
+
+                  {/* Time & Location */}
+                  <div className="flex items-center gap-2 text-xs text-[#1A201C] pt-1">
                     <Clock className="w-3.5 h-3.5 text-[#274432]" />
                     <span>
                       {dateObj.toLocaleString("id-ID", {
@@ -460,9 +531,71 @@ function AdminInterviewsContent() {
                     </span>
                   </div>
 
+                  {/* Candidate Reschedule Banner if RESCHEDULE_REQUESTED */}
+                  {isRescheduleReq && (
+                    <div className="p-3 rounded-2xl bg-amber-100/80 border border-amber-300 text-xs text-amber-950 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Kandidat Mengajukan Reschedule:</span>
+                      </div>
+                      <p className="text-[11px] font-semibold">
+                        Usulan:{" "}
+                        {item.rescheduleProposedDate
+                          ? new Date(item.rescheduleProposedDate).toLocaleString("id-ID", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })
+                          : "-"}
+                      </p>
+                      {item.rescheduleReason && (
+                        <p className="text-[11px] italic text-amber-900">
+                          &quot;{item.rescheduleReason}&quot;
+                        </p>
+                      )}
+
+                      {/* Approval / Rejection Buttons */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-amber-300/60">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="text-[11px] py-1 px-2.5 h-auto bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
+                          isLoading={approveRescheduleMutation.isPending}
+                          onClick={() =>
+                            approveRescheduleMutation.mutate({
+                              id: item.id,
+                              datetime: item.rescheduleProposedDate,
+                            })
+                          }
+                          leftIcon={<CheckCircle2 className="w-3 h-3" />}
+                        >
+                          Setujui
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-[11px] py-1 px-2.5 h-auto border-rose-300 text-rose-800 hover:bg-rose-50 font-bold"
+                          onClick={() => {
+                            setRejectModalInterview(item);
+                            setRejectAdminNote("");
+                          }}
+                          leftIcon={<XCircle className="w-3 h-3" />}
+                        >
+                          Tolak
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rejection Note if RESCHEDULE_REJECTED */}
+                  {item.status === "RESCHEDULE_REJECTED" && item.adminRescheduleNote && (
+                    <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-[11px] text-rose-900">
+                      <strong>Reschedule Ditolak:</strong> {item.adminRescheduleNote}
+                    </div>
+                  )}
+
                   {item.notes && (
                     <p className="text-[11px] text-[#64746A] italic bg-white/40 p-2.5 rounded-xl border border-black/5">
-                      "{item.notes}"
+                      &quot;{item.notes}&quot;
                     </p>
                   )}
                 </div>
@@ -510,7 +643,7 @@ function AdminInterviewsContent() {
         </div>
       )}
 
-      {/* Schedule Interview Modal */}
+      {/* SCHEDULE INTERVIEW MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
           <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/80 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
@@ -559,6 +692,14 @@ function AdminInterviewsContent() {
                   </select>
                 </div>
               )}
+
+              {/* PIC Field */}
+              <Input
+                label="Nama PIC Pewawancara (Opsional)"
+                placeholder="Contoh: Dr. Budi / Kak Kevin"
+                value={picName}
+                onChange={(e) => setPicName(e.target.value)}
+              />
 
               <Input
                 label="Tanggal & Waktu Wawancara *"
@@ -646,6 +787,64 @@ function AdminInterviewsContent() {
                 onClick={() => saveMutation.mutate()}
               >
                 Simpan Jadwal
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECT RESCHEDULE MODAL */}
+      {rejectModalInterview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/80 flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+              <div className="flex items-center gap-2 text-rose-800">
+                <XCircle className="w-5 h-5 text-rose-600" />
+                <h3 className="text-base font-bold text-[#1A201C]">
+                  Tolak Permohonan Reschedule
+                </h3>
+              </div>
+              <button
+                onClick={() => setRejectModalInterview(null)}
+                className="p-1.5 rounded-full hover:bg-black/5 text-[#64746A]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#64746A] leading-relaxed">
+              Berikan catatan alasan penolakan kepada kandidat (misal slot waktu pewawancara penuh, atau sarankan waktu lain):
+            </p>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-[#1A201C]">
+                Catatan Alasan Penolakan *
+              </label>
+              <textarea
+                rows={3}
+                value={rejectAdminNote}
+                onChange={(e) => setRejectAdminNote(e.target.value)}
+                placeholder="Contoh: Maaf, pada jam tersebut PIC sedang rapat akademik. Silakan ajukan waktu lain di hari kerja pukul 09.00 - 16.00 WIB."
+                className="w-full p-3 rounded-2xl bg-black/[0.02] border border-black/10 text-xs text-[#1A201C] outline-hidden focus:border-rose-600 focus:ring-1 focus:ring-rose-600 resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRejectModalInterview(null)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="bg-rose-700 hover:bg-rose-800 text-white"
+                isLoading={rejectRescheduleMutation.isPending}
+                onClick={() => rejectRescheduleMutation.mutate()}
+              >
+                Kirim Penolakan
               </Button>
             </div>
           </div>
